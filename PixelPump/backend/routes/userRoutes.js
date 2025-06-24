@@ -1,0 +1,30 @@
+const express = require('express');
+const router = express.Router();
+const userController = require('../controllers/UserController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Route publique - création d'utilisateur (inscription)
+router.post('/', userController.create);
+
+// Routes protégées
+router.use(authMiddleware);
+
+// Récupérer tous les utilisateurs
+router.get('/', userController.getAll);
+
+// Récupérer un utilisateur par ID
+router.get('/:id', userController.getOne);
+
+// Récupérer le profil utilisateur avec projets
+router.get('/:id/profile', userController.getUserProfile);
+
+// Mettre à jour un utilisateur
+router.put('/:id', userController.update);
+
+// Supprimer un utilisateur
+router.delete('/:id', userController.remove);
+
+// Récupérer les projets d'un utilisateur
+router.get('/:id/projects', userController.getUserProjects);
+
+module.exports = router;
