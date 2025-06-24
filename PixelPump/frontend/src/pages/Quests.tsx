@@ -1,143 +1,269 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const Quests: React.FC = () => {
   const dailyQuests = [
     {
       id: 1,
-      title: "Morning Workout",
-      description: "Complete your morning fitness routine",
+      title: "Entraînement Matinal",
+      description: "Complète ta routine fitness du matin",
       tasks: ["20 SQUATS", "5 POMPES", "1 MIN PLANK"],
       xp: 50,
       completed: false,
-      difficulty: "EASY"
+      difficulty: "FACILE"
     },
     {
       id: 2,
-      title: "Code Challenge",
-      description: "Solve 3 algorithm problems",
-      tasks: ["3 PROBLEMS", "NO BUGS", "CLEAN CODE"],
+      title: "Défi Code",
+      description: "Résous 3 problèmes d'algorithmes",
+      tasks: ["3 PROBLÈMES", "0 BUGS", "CODE PROPRE"],
       xp: 75,
       completed: true,
-      difficulty: "MEDIUM"
+      difficulty: "MOYEN"
     },
     {
       id: 3,
-      title: "Evening Run",
-      description: "Go for a 30-minute run",
-      tasks: ["30 MIN RUN", "5 KM DISTANCE"],
+      title: "Course du Soir",
+      description: "Cours pendant 30 minutes",
+      tasks: ["30 MIN COURSE", "5 KM DISTANCE"],
       xp: 60,
       completed: false,
-      difficulty: "HARD"
+      difficulty: "FACILE"
     }
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="pixel-title text-4xl text-[var(--pixel-purple)] mb-2">
-          DAILY QUESTS
-        </h1>
-        <p className="font-pixel text-[var(--pixel-grid)]">
-          Complete your daily challenges to level up!
-        </p>
-      </div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 25%, #2d1b69 50%, #1a0033 75%, #0a0014 100%)',
+      color: 'white',
+      fontFamily: 'Arial, sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        
+        {/* Header avec navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+          <Link
+            to="/dashboard"
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '2px solid #8338ec',
+              color: '#8338ec',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              boxShadow: '0 0 15px rgba(131, 56, 236, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = '#8338ec';
+              target.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = 'transparent';
+              target.style.color = '#8338ec';
+            }}
+          >
+            ← RETOUR DASHBOARD
+          </Link>
+          
+          <h1 style={{
+            fontSize: '3rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            color: '#ff006e',
+            textShadow: '0 0 20px #ff006e'
+          }}>
+            QUÊTES
+          </h1>
+          
+          <div></div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dailyQuests.map((quest) => (
-          <Card key={quest.id} className={`relative ${quest.completed ? 'opacity-75' : 'pixel-glow'}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[var(--pixel-orange)] text-lg">
-                  {quest.title}
-                </CardTitle>
-                <Badge
-                  variant={quest.difficulty === 'EASY' ? 'secondary' : quest.difficulty === 'MEDIUM' ? 'outline' : 'destructive'}
-                  className="font-pixel"
-                >
+        {/* Stats header */}
+        <div style={{
+          background: 'rgba(26, 0, 51, 0.8)',
+          border: '2px solid #ff006e',
+          borderRadius: '10px',
+          padding: '20px',
+          marginBottom: '30px',
+          boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px'
+          }}>
+            <div>
+              <p style={{ color: '#8338ec', fontSize: '0.9rem', marginBottom: '5px' }}>QUÊTES COMPLÉTÉES</p>
+              <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ff006e' }}>1/3</p>
+            </div>
+            <div>
+              <p style={{ color: '#8338ec', fontSize: '0.9rem', marginBottom: '5px' }}>XP AUJOURD'HUI</p>
+              <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffbe0b' }}>75</p>
+            </div>
+            <div>
+              <p style={{ color: '#8338ec', fontSize: '0.9rem', marginBottom: '5px' }}>SÉRIE ACTUELLE</p>
+              <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#06ffa5' }}>5 JOURS</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quêtes du jour */}
+        <h2 style={{
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: '#ff006e',
+          marginBottom: '20px',
+          textTransform: 'uppercase'
+        }}>
+          QUÊTES DU JOUR
+        </h2>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gap: '20px',
+          marginBottom: '40px'
+        }}>
+          {dailyQuests.map((quest) => (
+            <div
+              key={quest.id}
+              style={{
+                background: quest.completed 
+                  ? 'rgba(6, 255, 165, 0.1)' 
+                  : 'rgba(26, 0, 51, 0.8)',
+                border: quest.completed 
+                  ? '2px solid #06ffa5' 
+                  : '2px solid #ff006e',
+                borderRadius: '10px',
+                padding: '20px',
+                boxShadow: quest.completed 
+                  ? '0 0 20px rgba(6, 255, 165, 0.3)' 
+                  : '0 0 20px rgba(255, 0, 110, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {/* Header de la quête */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <span style={{
+                  background: quest.difficulty === 'FACILE' ? '#06ffa5' : quest.difficulty === 'MOYEN' ? '#ffbe0b' : '#ff006e',
+                  color: '#000',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold'
+                }}>
                   {quest.difficulty}
-                </Badge>
+                </span>
+                <span style={{
+                  color: '#ffbe0b',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}>
+                  +{quest.xp} XP
+                </span>
               </div>
-              <p className="text-[var(--pixel-grid)] font-pixel text-sm">
+
+              <h3 style={{
+                color: '#ff006e',
+                fontSize: '1.2rem',
+                fontWeight: 'bold',
+                marginBottom: '10px'
+              }}>
+                {quest.title}
+              </h3>
+
+              <p style={{
+                color: '#8338ec',
+                fontSize: '0.9rem',
+                marginBottom: '15px'
+              }}>
                 {quest.description}
               </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 mb-4">
+
+              {/* Tâches */}
+              <div style={{ marginBottom: '20px' }}>
                 {quest.tasks.map((task, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className={`w-4 h-4 rounded border-2 ${
-                      quest.completed
-                        ? 'bg-[var(--pixel-cyan)] border-[var(--pixel-cyan)]'
-                        : 'border-[var(--pixel-grid)]'
-                    }`}>
-                      {quest.completed && (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-[var(--pixel-dark)] text-xs">✓</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="font-pixel text-sm text-[var(--pixel-orange)]">
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      padding: '8px',
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      borderRadius: '4px'
+                    }}
+                  >
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      border: '2px solid #ff006e',
+                      background: quest.completed ? '#06ffa5' : 'transparent',
+                      marginRight: '10px'
+                    }}></div>
+                    <span style={{
+                      color: quest.completed ? '#06ffa5' : 'white',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold'
+                    }}>
                       {task}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span className="font-pixel text-[var(--pixel-yellow)]">
-                    +{quest.xp} XP
-                  </span>
-                </div>
-                <Button
-                  variant={quest.completed ? "outline" : "default"}
-                  size="sm"
-                  disabled={quest.completed}
-                  className="font-pixel"
-                >
-                  {quest.completed ? 'COMPLETED' : 'START'}
-                </Button>
-              </div>
-
-              {quest.completed && (
-                <div className="absolute top-2 right-2">
-                  <div className="w-8 h-8 bg-[var(--pixel-cyan)] rounded-full flex items-center justify-center">
-                    <span className="text-[var(--pixel-dark)] font-bold">✓</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="text-center mt-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-6">
-            <h3 className="pixel-title text-xl text-[var(--pixel-purple)] mb-4">
-              WEEKLY BONUS
-            </h3>
-            <p className="font-pixel text-sm text-[var(--pixel-grid)] mb-4">
-              Complete all daily quests for 7 days in a row
-            </p>
-            <div className="flex justify-center space-x-2 mb-4">
-              {[...Array(7)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-6 h-6 rounded border-2 ${
-                    i < 2 ? 'bg-[var(--pixel-cyan)] border-[var(--pixel-cyan)]' : 'border-[var(--pixel-grid)]'
-                  }`}
-                />
-              ))}
+              {/* Bouton d'action */}
+              <button
+                disabled={quest.completed}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: quest.completed ? 'rgba(6, 255, 165, 0.2)' : 'transparent',
+                  border: quest.completed ? '2px solid #06ffa5' : '2px solid #ff006e',
+                  color: quest.completed ? '#06ffa5' : '#ff006e',
+                  borderRadius: '5px',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  cursor: quest.completed ? 'not-allowed' : 'pointer',
+                  boxShadow: quest.completed 
+                    ? '0 0 15px rgba(6, 255, 165, 0.3)' 
+                    : '0 0 15px rgba(255, 0, 110, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (!quest.completed) {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = '#ff006e';
+                    target.style.color = 'white';
+                    target.style.boxShadow = '0 0 25px rgba(255, 0, 110, 0.6)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!quest.completed) {
+                    const target = e.target as HTMLButtonElement;
+                    target.style.background = 'transparent';
+                    target.style.color = '#ff006e';
+                    target.style.boxShadow = '0 0 15px rgba(255, 0, 110, 0.3)';
+                  }
+                }}
+              >
+                {quest.completed ? '✓ COMPLÉTÉE' : 'COMMENCER'}
+              </button>
             </div>
-            <Badge variant="outline" className="font-pixel">
-              +500 XP BONUS
-            </Badge>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

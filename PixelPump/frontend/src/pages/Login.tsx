@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Input } from '../components/ui/input';
-import { Button } from '../components/ui/button';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,89 +28,210 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen space-gradient pixel-grid-bg retro-scan-lines flex items-center justify-center p-4">
-      <Card className="w-full max-w-md pixel-glow">
-        <CardHeader className="text-center">
-          <div className="mb-4">
-            <h1 className="pixel-title text-4xl mb-2">
-              <span className="text-[var(--pixel-cyan)]">PIXEL</span>
-              <span className="text-[var(--pixel-purple)]">PUMP</span>
-            </h1>
-            <p className="text-[var(--pixel-grid)] font-pixel text-sm">
-              Level up your coding journey
-            </p>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 25%, #2d1b69 50%, #1a0033 75%, #0a0014 100%)',
+      color: 'white',
+      fontFamily: 'Arial, sans-serif',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'rgba(26, 0, 51, 0.9)',
+        border: '2px solid #ff006e',
+        borderRadius: '15px',
+        padding: '40px',
+        boxShadow: '0 0 30px rgba(255, 0, 110, 0.4)',
+        width: '100%',
+        maxWidth: '400px',
+        backdropFilter: 'blur(10px)'
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h1 style={{
+            fontSize: '3rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            color: '#ff006e',
+            textShadow: '0 0 20px #ff006e',
+            marginBottom: '10px'
+          }}>
+            PIXELPUMP
+          </h1>
+          <p style={{
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            background: 'linear-gradient(135deg, #ff006e 0%, #8338ec 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '20px'
+          }}>
+            CONNEXION
+          </p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            background: 'rgba(255, 107, 107, 0.1)',
+            border: '1px solid #ff6b6b',
+            borderRadius: '5px',
+            padding: '10px',
+            marginBottom: '20px',
+            color: '#ff6b6b',
+            textAlign: 'center',
+            fontSize: '0.9rem'
+          }}>
+            {error}
           </div>
-          <CardTitle className="text-[var(--pixel-purple)]">LOGIN</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-[var(--foreground)] font-pixel font-bold mb-2">
-                EMAIL
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className="w-full"
-              />
-            </div>
+        )}
 
-            <div>
-              <label className="block text-[var(--foreground)] font-pixel font-bold mb-2">
-                PASSWORD
-              </label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="w-full"
-              />
-            </div>
-
-            {error && (
-              <div className="pixel-card bg-[var(--pixel-red)]/20 border-[var(--pixel-red)]">
-                <p className="text-[var(--pixel-red)] font-pixel text-sm">
-                  ⚠️ {error}
-                </p>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3"
-              variant="default"
-            >
-              {isLoading ? 'LOGGING IN...' : 'LOGIN'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-[var(--pixel-grid)] font-pixel text-sm">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-[var(--pixel-cyan)] hover:text-[var(--pixel-pink)] transition-colors"
-              >
-                Register here
-              </Link>
-            </p>
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '25px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: '#ff006e',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase'
+            }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(0, 0, 0, 0.5)',
+                border: '2px solid #8338ec',
+                borderRadius: '5px',
+                color: 'white',
+                fontSize: '1rem',
+                outline: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ff006e';
+                e.target.style.boxShadow = '0 0 10px rgba(255, 0, 110, 0.5)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#8338ec';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
           </div>
 
-          {/* Pixel Art Decoration */}
-          <div className="mt-6 flex justify-center space-x-4">
-            <div className="w-4 h-4 bg-[var(--pixel-purple)] pixel-glow"></div>
-            <div className="w-4 h-4 bg-[var(--pixel-cyan)] pixel-glow" style={{ animationDelay: '0.5s' }}></div>
-            <div className="w-4 h-4 bg-[var(--pixel-yellow)] pixel-glow" style={{ animationDelay: '1s' }}></div>
-            <div className="w-4 h-4 bg-[var(--pixel-orange)] pixel-glow" style={{ animationDelay: '1.5s' }}></div>
+          <div style={{ marginBottom: '30px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: '#ff006e',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase'
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(0, 0, 0, 0.5)',
+                border: '2px solid #8338ec',
+                borderRadius: '5px',
+                color: 'white',
+                fontSize: '1rem',
+                outline: 'none',
+                transition: 'all 0.3s ease'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ff006e';
+                e.target.style.boxShadow = '0 0 10px rgba(255, 0, 110, 0.5)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#8338ec';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              width: '100%',
+              padding: '15px',
+              background: isLoading ? 'rgba(255, 0, 110, 0.5)' : 'transparent',
+              border: '2px solid #ff006e',
+              color: '#ff006e',
+              borderRadius: '5px',
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 0 15px rgba(255, 0, 110, 0.3)',
+              transition: 'all 0.3s ease',
+              marginBottom: '20px'
+            }}
+            onMouseOver={(e) => {
+              if (!isLoading) {
+                const target = e.target as HTMLButtonElement;
+                target.style.background = '#ff006e';
+                target.style.color = 'white';
+                target.style.boxShadow = '0 0 25px rgba(255, 0, 110, 0.6)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!isLoading) {
+                const target = e.target as HTMLButtonElement;
+                target.style.background = 'transparent';
+                target.style.color = '#ff006e';
+                target.style.boxShadow = '0 0 15px rgba(255, 0, 110, 0.3)';
+              }
+            }}
+          >
+            {isLoading ? 'CONNEXION...' : 'SE CONNECTER'}
+          </button>
+        </form>
+
+        {/* Register Link */}
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: '#8338ec', fontSize: '0.9rem', marginBottom: '10px' }}>
+            Pas encore de compte ?
+          </p>
+          <Link
+            to="/register"
+            style={{
+              color: '#ff006e',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontSize: '0.9rem',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              (e.target as HTMLAnchorElement).style.textShadow = '0 0 10px #ff006e';
+            }}
+            onMouseOut={(e) => {
+              (e.target as HTMLAnchorElement).style.textShadow = 'none';
+            }}
+          >
+            CRÉER UN COMPTE
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };

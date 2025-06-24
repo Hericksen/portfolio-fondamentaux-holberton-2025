@@ -1,27 +1,34 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import Layout from './components/Layout';
-import Achievements from './pages/Achievements';
-import Quests from './pages/Quests';
 import Register from './pages/Register';
-
+import Quests from './pages/Quests';
+import Profile from './pages/Profile';
+import Admin from './pages/Admin';
+import Database from './pages/Database';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen space-gradient flex items-center justify-center">
-        <div className="pixel-title text-[var(--pixel-cyan)]">LOADING...</div>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 25%, #2d1b69 50%, #1a0033 75%, #0a0014 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ff006e',
+        fontSize: '2rem',
+        fontWeight: 'bold'
+      }}>
+        LOADING...
       </div>
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
@@ -29,20 +36,29 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen space-gradient flex items-center justify-center">
-        <div className="pixel-title text-[var(--pixel-cyan)]">LOADING...</div>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 25%, #2d1b69 50%, #1a0033 75%, #0a0014 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ff006e',
+        fontSize: '2rem',
+        fontWeight: 'bold'
+      }}>
+        LOADING...
       </div>
     );
   }
 
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+  return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" />;
 };
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App font-pixel">
+        <div className="App">
           <Routes>
             {/* Public Routes */}
             <Route
@@ -67,9 +83,7 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
@@ -77,19 +91,7 @@ function App() {
               path="/quests"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <Quests />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/achievements"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Achievements />
-                  </Layout>
+                  <Quests />
                 </ProtectedRoute>
               }
             />
@@ -97,9 +99,23 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <Profile />
-                  </Layout>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/database"
+              element={
+                <ProtectedRoute>
+                  <Database />
                 </ProtectedRoute>
               }
             />

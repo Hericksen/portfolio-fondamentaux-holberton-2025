@@ -1,153 +1,553 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
-interface DashboardProps {}
+function Dashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-export const Dashboard: React.FC<DashboardProps> = () => {
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <div className="min-h-screen space-gradient pixel-grid-bg retro-scan-lines">
-      <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="pixel-title text-6xl mb-4 text-[var(--pixel-purple)]">
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 25%, #2d1b69 50%, #1a0033 75%, #0a0014 100%)',
+      color: 'white',
+      fontFamily: 'Arial, sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Header avec bouton logout et admin */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <Link
+            to="/admin"
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '2px solid #06ffa5',
+              color: '#06ffa5',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              boxShadow: '0 0 15px rgba(6, 255, 165, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = '#06ffa5';
+              target.style.color = 'black';
+            }}
+            onMouseOut={(e) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = 'transparent';
+              target.style.color = '#06ffa5';
+            }}
+          >
+            ADMIN
+          </Link>
+          <Link
+            to="/database"
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '2px solid #ffbe0b',
+              color: '#ffbe0b',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              boxShadow: '0 0 15px rgba(255, 190, 11, 0.3)',
+              transition: 'all 0.3s ease',
+              marginLeft: '10px'
+            }}
+            onMouseOver={(e: any) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = '#ffbe0b';
+              target.style.color = 'black';
+            }}
+            onMouseOut={(e: any) => {
+              const target = e.target as HTMLAnchorElement;
+              target.style.background = 'transparent';
+              target.style.color = '#ffbe0b';
+            }}
+          >
+            DATABASE
+          </Link>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '2px solid #ff6b6b',
+              color: '#ff6b6b',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              boxShadow: '0 0 15px rgba(255, 107, 107, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = '#ff6b6b';
+              target.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'transparent';
+              target.style.color = '#ff6b6b';
+            }}
+          >
+            LOGOUT
+          </button>
+        </div>
+
+        {/* Header Principal */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h1 style={{
+            fontSize: '4rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            color: '#ff006e',
+            textShadow: '0 0 20px #ff006e',
+            marginBottom: '10px'
+          }}>
             PIXELPUMP
           </h1>
-          <p className="pixel-title text-2xl text-[var(--pixel-pink)]">
+          <p style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            background: 'linear-gradient(135deg, #ff006e 0%, #8338ec 25%, #ffbe0b 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
             TRANSFORME TON HÉRO
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Character Avatar */}
-          <div className="lg:col-span-1">
-            <Card className="pixel-glow">
-              <CardContent className="p-6">
-                <div className="aspect-square bg-gradient-to-b from-[var(--pixel-purple)] to-[var(--pixel-pink)] rounded-lg flex items-center justify-center mb-4">
-                  {/* Pixel Character - simplified representation */}
-                  <div className="w-32 h-32 relative">
-                    <div className="absolute inset-0 bg-[var(--pixel-orange)] opacity-80 rounded-lg"></div>
-                    <div className="absolute top-4 left-8 w-4 h-4 bg-[var(--pixel-dark)] rounded-sm"></div>
-                    <div className="absolute top-4 right-8 w-4 h-4 bg-[var(--pixel-dark)] rounded-sm"></div>
-                    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-[var(--pixel-dark)] rounded-sm"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Character Progress */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[var(--pixel-purple)]">PROGRESSION PERSONNAGE</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-[var(--pixel-cyan)] mb-2">Niv.6</div>
-                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[var(--pixel-purple)] to-[var(--pixel-pink)] rounded-lg flex items-center justify-center">
-                    {/* Mini character sprite */}
-                    <div className="w-12 h-12 bg-[var(--pixel-orange)] rounded opacity-90"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Grille principale */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
+          gap: '20px',
+          marginBottom: '40px'
+        }}>
+          
+          {/* Avatar */}
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ff006e',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+          }}>
+            <h3 style={{ 
+              textAlign: 'center', 
+              color: '#ff006e', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}>
+              TON HÉRO
+            </h3>
+            
+            <div style={{
+              width: '200px',
+              height: '200px',
+              margin: '0 auto',
+              background: 'linear-gradient(135deg, #ff006e, #8338ec, #ffbe0b)',
+              borderRadius: '10px',
+              border: '3px solid #ff006e',
+              position: 'relative',
+              boxShadow: '0 0 30px rgba(255, 0, 110, 0.5)'
+            }}>
+              {/* Personnage simple */}
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '80px',
+                height: '80px',
+                background: '#ff8500',
+                borderRadius: '5px'
+              }}>
+                {/* Yeux */}
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  left: '20px',
+                  width: '8px',
+                  height: '8px',
+                  background: 'black',
+                  borderRadius: '50%'
+                }}></div>
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  width: '8px',
+                  height: '8px',
+                  background: 'black',
+                  borderRadius: '50%'
+                }}></div>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#ffbe0b',
+                textShadow: '0 0 10px #ffbe0b'
+              }}>
+                NIV. 6
+              </div>
+              <div style={{
+                background: 'rgba(0,0,0,0.5)',
+                height: '10px',
+                borderRadius: '5px',
+                margin: '10px 0',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: '75%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #ff006e, #8338ec)',
+                  borderRadius: '5px',
+                  boxShadow: '0 0 10px rgba(255, 0, 110, 0.8)'
+                }}></div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: '#9d4edd' }}>
+                2850 / 3500 XP
+              </div>
+            </div>
           </div>
 
           {/* Stats */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[var(--pixel-purple)]">BADGES</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-[var(--pixel-red)] rounded"></div>
-                    <span className="font-pixel text-sm">Force</span>
-                  </div>
-                  <Badge variant="destructive">12</Badge>
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ff006e',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+          }}>
+            <h3 style={{ 
+              color: '#ff006e', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}>
+              STATS
+            </h3>
+            
+            {[
+              { name: 'FORCE', value: 12, width: '80%' },
+              { name: 'ENDURANCE', value: 8, width: '65%' },
+              { name: 'VITESSE', value: 13, width: '90%' },
+              { name: 'ÉNERGIE', value: '85%', width: '85%' }
+            ].map((stat, i) => (
+              <div key={i} style={{ marginBottom: '15px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '5px'
+                }}>
+                  <span style={{ color: '#ff006e', fontSize: '0.9rem' }}>
+                    {stat.name}
+                  </span>
+                  <span style={{ color: '#8338ec', fontWeight: 'bold' }}>
+                    {stat.value}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-[var(--pixel-pink)] rounded"></div>
-                    <span className="font-pixel text-sm">Endurance</span>
-                  </div>
-                  <Badge variant="secondary">8</Badge>
+                <div style={{
+                  background: 'rgba(0,0,0,0.5)',
+                  height: '8px',
+                  borderRadius: '4px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    width: stat.width,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #ff006e, #8338ec)',
+                    borderRadius: '4px',
+                    boxShadow: '0 0 8px rgba(255, 0, 110, 0.6)'
+                  }}></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-[var(--pixel-yellow)] rounded"></div>
-                    <span className="font-pixel text-sm">Vitesse</span>
-                  </div>
-                  <Badge variant="outline">13</Badge>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            ))}
           </div>
 
-          {/* Daily Quests */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[var(--pixel-orange)]">DÉFIS DU JOUR</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="pixel-card bg-[var(--pixel-space)]">
-                    <div className="space-y-2">
-                      <div className="font-pixel text-sm text-[var(--pixel-orange)]">- 20 SQUATS</div>
-                      <div className="font-pixel text-sm text-[var(--pixel-orange)]">- 5 POMPES</div>
-                      <div className="font-pixel text-sm text-[var(--pixel-yellow)]">+50 XP</div>
-                    </div>
-                  </div>
-
-                  <div className="pixel-card bg-[var(--pixel-space)]">
-                    <div className="flex justify-center gap-4 items-center">
-                      <div className="w-8 h-8 bg-[var(--pixel-yellow)] rounded"></div>
-                      <div className="w-8 h-8 bg-[var(--pixel-pink)] rounded"></div>
-                      <div className="w-8 h-8 bg-[var(--pixel-orange)] rounded"></div>
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="text-2xl font-pixel text-[var(--pixel-yellow)]">T</div>
-                    </div>
+          {/* Badges */}
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ff006e',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+          }}>
+            <h3 style={{ 
+              color: '#ff006e', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}>
+              BADGES
+            </h3>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '10px'
+            }}>
+              {[
+                { name: 'FORCE', color: '#ef4444' },
+                { name: 'DÉFENSE', color: '#3b82f6' },
+                { name: 'VITESSE', color: '#eab308' },
+                { name: 'ÉLITE', color: '#8b5cf6' }
+              ].map((badge, i) => (
+                <div key={i} style={{
+                  background: 'rgba(26, 0, 51, 0.6)',
+                  border: '1px solid #ff006e',
+                  borderRadius: '8px',
+                  padding: '10px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{
+                    width: '30px',
+                    height: '30px',
+                    background: badge.color,
+                    borderRadius: '50%',
+                    margin: '0 auto 8px'
+                  }}></div>
+                  <div style={{ fontSize: '0.7rem', color: '#ff006e' }}>
+                    {badge.name}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Achievements */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-[var(--pixel-orange)]">BADGES</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="pixel-card bg-[var(--pixel-space)] h-32">
-                  {/* Empty state for now */}
-                  <div className="h-full flex items-center justify-center text-[var(--pixel-grid)] font-pixel">
-                    BIENTÔT...
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mt-8">
-          <Button variant="default" size="lg">
+        {/* Défis du jour */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '20px',
+          marginBottom: '40px'
+        }}>
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ff006e',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+          }}>
+            <h3 style={{ 
+              color: '#ff006e', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}>
+              DÉFIS DU JOUR
+            </h3>
+            
+            {[
+              { name: '20 SQUATS', done: true },
+              { name: '5 POMPES', done: false },
+              { name: '1KM COURSE', done: false }
+            ].map((challenge, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '10px',
+                padding: '8px',
+                background: 'rgba(255, 0, 110, 0.1)',
+                borderRadius: '5px'
+              }}>
+                <span style={{ color: 'white' }}>▶ {challenge.name}</span>
+                <span style={{ 
+                  color: challenge.done ? '#06ffa5' : '#ff006e',
+                  fontSize: '1.2rem'
+                }}>
+                  {challenge.done ? '✓' : '○'}
+                </span>
+              </div>
+            ))}
+            
+            <div style={{
+              marginTop: '20px',
+              padding: '10px',
+              background: 'rgba(6, 255, 165, 0.2)',
+              borderRadius: '5px',
+              textAlign: 'center',
+              color: '#06ffa5',
+              fontWeight: 'bold'
+            }}>
+              RÉCOMPENSE: +50 XP
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ff006e',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+          }}>
+            <h3 style={{ 
+              color: '#ff006e', 
+              marginBottom: '20px',
+              fontSize: '1.2rem',
+              fontWeight: 'bold'
+            }}>
+              PROGRESSION HEBDO
+            </h3>
+            
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #ff006e, #8338ec, #ffbe0b)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '10px'
+              }}>
+                4/7 JOURS
+              </div>
+              <div style={{
+                background: 'rgba(0,0,0,0.5)',
+                height: '10px',
+                borderRadius: '5px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: '60%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #ff006e, #8338ec)',
+                  borderRadius: '5px',
+                  boxShadow: '0 0 10px rgba(255, 0, 110, 0.8)'
+                }}></div>
+              </div>
+            </div>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '5px',
+              marginBottom: '20px'
+            }}>
+              {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
+                <div key={i} style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '5px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold',
+                  background: i < 4 ? 'linear-gradient(135deg, #ff006e, #8338ec)' : '#4b5563',
+                  color: 'white'
+                }}>
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ 
+                color: '#06ffa5', 
+                fontWeight: 'bold',
+                textShadow: '0 0 5px #06ffa5'
+              }}>
+                +280 XP cette semaine
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Boutons */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => navigate('/profile')}
+            style={{
+              padding: '15px 30px',
+              background: 'transparent',
+              border: '2px solid #ff006e',
+              color: '#ff006e',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              boxShadow: '0 0 15px rgba(255, 0, 110, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = '#ff006e';
+              target.style.color = 'white';
+              target.style.boxShadow = '0 0 25px rgba(255, 0, 110, 0.6)';
+            }}
+            onMouseOut={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'transparent';
+              target.style.color = '#ff006e';
+              target.style.boxShadow = '0 0 15px rgba(255, 0, 110, 0.3)';
+            }}
+          >
             COMMENCER ENTRAÎNEMENT
-          </Button>
-          <Button variant="outline" size="lg">
-            VOIR PROFIL
-          </Button>
+          </button>
+          <button
+            onClick={() => navigate('/quests')}
+            style={{
+              padding: '15px 30px',
+              background: 'transparent',
+              border: '2px solid #ff006e',
+              color: '#ff006e',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              boxShadow: '0 0 15px rgba(255, 0, 110, 0.3)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = '#ff006e';
+              target.style.color = 'white';
+              target.style.boxShadow = '0 0 25px rgba(255, 0, 110, 0.6)';
+            }}
+            onMouseOut={(e) => {
+              const target = e.target as HTMLButtonElement;
+              target.style.background = 'transparent';
+              target.style.color = '#ff006e';
+              target.style.boxShadow = '0 0 15px rgba(255, 0, 110, 0.3)';
+            }}
+          >
+            VOIR QUÊTES
+          </button>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default Dashboard;
