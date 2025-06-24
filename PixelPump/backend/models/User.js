@@ -12,7 +12,7 @@ const User = sequelize.define('User', {
     allowNull: false,
     unique: true
   },
-  password_hash: {
+  password: {
     type: DataTypes.TEXT,
     allowNull: false
   }, 

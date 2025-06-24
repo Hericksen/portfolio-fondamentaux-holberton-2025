@@ -1,6 +1,86 @@
 # PixelPump Backend
 
-Backend API pour la plateforme de gamification PixelPump.
+# PixelPump Backend API
+
+Backend API pour la plateforme de gamification PixelPump - Transformez votre portfolio en jeu !
+
+## 🚀 Installation
+
+```bash
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env
+# Modifier .env avec vos paramètres
+
+# Initialiser la base de données avec des données de test
+npm run seed
+
+# Démarrer le serveur
+npm start
+```
+
+## 🔧 Configuration
+
+Créez un fichier `.env` avec :
+
+```env
+# Base de données PostgreSQL
+DB_NAME=portfolio
+DB_USER=postgres
+DB_PASS=votre_mot_de_passe
+DB_HOST=localhost
+DB_PORT=5432
+
+# JWT Secret
+JWT_SECRET=votre_secret_jwt_securise
+
+# Serveur
+PORT=3001
+NODE_ENV=development
+```
+
+## 📡 API Endpoints
+
+### Authentification
+
+- `POST /api/auth/register` - Inscription
+- `POST /api/auth/login` - Connexion
+- `GET /api/auth/verify` - Vérifier le token
+
+### Utilisateurs
+
+- `GET /api/users` - Liste des utilisateurs (protégé)
+- `GET /api/users/:id` - Détails d'un utilisateur (protégé)
+- `GET /api/users/:id/profile` - Profil complet avec projets (protégé)
+- `PUT /api/users/:id` - Modifier un utilisateur (protégé)
+- `DELETE /api/users/:id` - Supprimer un utilisateur (protégé)
+- `GET /api/users/:id/projects` - Projets d'un utilisateur (protégé)
+
+### Projets
+
+- `GET /api/projects` - Liste des projets (public)
+- `GET /api/projects/:id` - Détails d'un projet (public)
+- `POST /api/projects` - Créer un projet (protégé)
+- `PUT /api/projects/:id` - Modifier un projet (protégé)
+- `DELETE /api/projects/:id` - Supprimer un projet (protégé)
+
+### Quêtes
+
+- `GET /api/quests` - Liste des quêtes (public)
+- `POST /api/quests` - Créer une quête (protégé)
+- `GET /api/quests/user/:userId` - Quêtes d'un utilisateur (protégé)
+- `PUT /api/quests/:questId/complete` - Compléter une quête (protégé)
+- `DELETE /api/quests/:questId` - Supprimer une quête (protégé)
+
+### Succès
+
+- `GET /api/achievements` - Liste des succès (public)
+- `POST /api/achievements` - Créer un succès (protégé)
+- `GET /api/achievements/user/:userId` - Succès d'un utilisateur (protégé)
+- `PUT /api/achievements/:achievementId/unlock` - Débloquer un succès (protégé)
+- `DELETE /api/achievements/:achievementId` - Supprimer un succès (protégé)
 
 ## Technologies utilisées
 

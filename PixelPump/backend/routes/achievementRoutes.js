@@ -3,13 +3,14 @@ const router = express.Router();
 const achievementController = require('../controllers/AchievementController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Routes protégées (nécessitent une authentification)
-router.post('/', authMiddleware, achievementController.createAchievement);
-router.get('/user/:userId', authMiddleware, achievementController.getUserAchievements);
-router.put('/:achievementId/unlock', authMiddleware, achievementController.unlockAchievement);
-router.delete('/:achievementId', authMiddleware, achievementController.deleteAchievement);
-
-// Route publique pour obtenir tous les achievements (pour les admins)
+// Routes publiques
 router.get('/', achievementController.getAllAchievements);
+
+// Routes protégées
+router.use(authMiddleware);
+router.post('/', achievementController.createAchievement);
+router.get('/user/:userId', achievementController.getUserAchievements);
+router.put('/:achievementId/unlock', achievementController.unlockAchievement);
+router.delete('/:achievementId', achievementController.deleteAchievement);
 
 module.exports = router;

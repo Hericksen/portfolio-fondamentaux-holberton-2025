@@ -1,92 +1,170 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'vraie-cle-secrete-a-changer';
-
-exports.register = async (req, res) => {
-  try {
-    const { email, password, username } = req.body;
-
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Cet email est déjà utilisé' });
-    }
-
-    // Vérifier si le nom d'utilisateur existe déjà
-    const existingUsername = await User.findOne({ where: { username } });
-    if (existingUsername) {
-      return res.status(409).json({ message: 'Ce nom d\'utilisateur est déjà pris' });
-    }
-
-    // Hacher le mot de passe
-    const saltRounds = 10;
-    const password_hash = await bcrypt.hash(password, saltRounds);
-
-    // Créer l'utilisateur
-    const user = await User.create({
-      email,
-      password_hash,
-      username
-    });
-
-    // Générer un token
-    const token = jwt.sign(
-      { id: user.id, email: user.email, username: user.username },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      message: 'Utilisateur créé avec succès',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        xp: user.xp,
-        level: user.level
+const AuthController = {
+  async register(req, res) {
+    try {
+      const { username, email, password } = req.body;
+      
+      if (!username || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tous les champs sont requis'
+        });
       }
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur', error: error.message });
+
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'Le mot de passe doit contenir au moins 6 caractères'
+        });
+      }
+
+      // Vérifier si l'utilisateur existe déjà
+      const existingUser = await User.findOne({
+        where: { email }
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email déjà utilisé'
+        });
+      }
+
+      // Hacher le mot de passe
+      const hashedPassword = await bcrypt.hash(password, 12);
+      
+      // Créer l'utilisateur
+      const user = await User.create({
+        username,
+        email,
+        password: hashedPassword
+      });
+
+      // Générer le token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
+        { expiresIn: '24h' }
+      );
+
+      // Réponse sans le mot de passe
+      const userResponse = user.toJSON();
+      delete userResponse.password;
+
+      res.status(201).json({
+        success: true,
+        message: 'Utilisateur créé avec succès',
+        user: userResponse,
+        token
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
+      });
+    }
+  },
+
+  async login(req, res) {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email et mot de passe requis'
+        });
+      }
+
+      // Trouver l'utilisateur
+      const user = await User.findOne({ where: { email } });
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Identifiants invalides'
+        });
+      }
+
+      // Vérifier le mot de passe
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      if (!isValidPassword) {
+        return res.status(401).json({
+          success: false,
+          message: 'Identifiants invalides'
+        });
+      }
+
+      // Générer le token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
+        { expiresIn: '24h' }
+      );
+
+      // Réponse sans le mot de passe
+      const userResponse = user.toJSON();
+      delete userResponse.password;
+
+      res.json({
+        success: true,
+        message: 'Connexion réussie',
+        user: userResponse,
+        token
+      });
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
+      });
+    }
+  },
+
+  async verifyToken(req, res) {
+    try {
+      const authHeader = req.header('Authorization');
+      
+      if (!authHeader) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'Token manquant' 
+        });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pixelpump_secret_key_2025');
+      
+      const user = await User.findByPk(decoded.userId, {
+        attributes: { exclude: ['password'] }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Token valide',
+        user
+      });
+    } catch (error) {
+      res.status(401).json({
+        success: false,
+        message: 'Token invalide'
+      });
+    }
   }
 };
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(401).json({ message: 'Email invalide' });
-
-    const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) return res.status(401).json({ message: 'Mot de passe invalide' });
-
-    // Mettre à jour la dernière connexion
-    user.last_login = new Date();
-    await user.save();
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, username: user.username },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      message: 'Connexion réussie',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        xp: user.xp,
-        level: user.level
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Erreur serveur', error: err.message });
-  }
-};
+module.exports = AuthController;
