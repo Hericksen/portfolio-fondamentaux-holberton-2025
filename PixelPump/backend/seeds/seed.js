@@ -79,37 +79,37 @@ async function seedDatabase() {
       {
         title: 'Premier pas en React',
         description: 'Créer votre premier composant React fonctionnel',
-        category: 'frontend',
-        xpReward: 50,
-        difficulty: 1
+        category: 'skill',
+        xp_reward: 50,
+        difficulty: 'easy'
       },
       {
         title: 'API avec Express',
         description: 'Développer une API REST complète avec Express.js',
-        category: 'backend',
-        xpReward: 100,
-        difficulty: 2
+        category: 'skill',
+        xp_reward: 100,
+        difficulty: 'medium'
       },
       {
         title: 'Base de données PostgreSQL',
         description: 'Configurer et utiliser PostgreSQL dans votre projet',
-        category: 'backend',
-        xpReward: 75,
-        difficulty: 2
+        category: 'skill',
+        xp_reward: 75,
+        difficulty: 'medium'
       },
       {
         title: 'Déploiement en production',
         description: 'Déployer votre application sur un serveur de production',
-        category: 'devops',
-        xpReward: 150,
-        difficulty: 3
+        category: 'challenge',
+        xp_reward: 150,
+        difficulty: 'hard'
       },
       {
         title: 'Interface responsive',
         description: 'Créer une interface qui s\'adapte à tous les écrans',
-        category: 'frontend',
-        xpReward: 80,
-        difficulty: 2
+        category: 'skill',
+        xp_reward: 80,
+        difficulty: 'medium'
       }
     ]);
 
