@@ -18,25 +18,44 @@ const Achievement = sequelize.define('Achievement', {
   condition: {
     type: DataTypes.TEXT
   },
-  user_id: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'users',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+  condition_type: {
+    type: DataTypes.ENUM('quest_count', 'streak', 'xp_total', 'level', 'specific_quest', 'login_days'),
+    allowNull: false
   },
-  unlocked_at: {
-    type: DataTypes.DATE
+  condition_value: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  icon: {
+    type: DataTypes.STRING
+  },
+  rarity: {
+    type: DataTypes.ENUM('common', 'rare', 'epic', 'legendary'),
+    defaultValue: 'common'
+  },
+  xp_reward: {
+    type: DataTypes.INTEGER,
+    defaultValue: 50
+  },
+  is_hidden: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'achievements',
   timestamps: false
 });
 
-// Relations
-User.hasMany(Achievement, { foreignKey: 'user_id', onDelete: 'CASCADE' });
-Achievement.belongsTo(User, { foreignKey: 'user_id' });
+// Relations - Les achievements sont des templates, les UserAchievements sont les unlocks
+// User.hasMany(Achievement, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+// Achievement.belongsTo(User, { foreignKey: 'user_id' });
 
 module.exports = Achievement;

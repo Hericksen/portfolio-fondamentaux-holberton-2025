@@ -92,6 +92,10 @@ async function startServer() {
     require('./models/index');
     console.log('✅ Modèles chargés');
     
+    // Initialiser le scheduler de quêtes
+    const QuestScheduler = require('./services/QuestScheduler');
+    // QuestScheduler.init(); // Décommenté en production
+    
     // Test de connexion à la base de données
     await sequelize.authenticate();
     console.log('✅ Connexion à PostgreSQL établie avec succès');

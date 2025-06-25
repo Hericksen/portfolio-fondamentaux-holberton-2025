@@ -18,6 +18,11 @@ router.get('/:id', userController.getOne);
 // Récupérer le profil utilisateur avec projets
 router.get('/:id/profile', userController.getUserProfile);
 
+// API spécifiques gamification
+router.put('/:id/avatar', userController.updateAvatar);
+router.patch('/:id/xp', userController.addXp);
+router.get('/:id/progress', userController.getProgress);
+
 // Mettre à jour un utilisateur
 router.put('/:id', userController.update);
 

@@ -30,7 +30,32 @@ const User = sequelize.define('User', {
     defaultValue: 1
   },
   avatar: {
-    type: DataTypes.JSON
+    type: DataTypes.JSON,
+    defaultValue: {
+      body: 'default',
+      outfit: 'casual',
+      accessory: 'none',
+      color: '#ff006e'
+    }
+  },
+  streak: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  fitness_goals: {
+    type: DataTypes.JSON,
+    defaultValue: {
+      daily_quests: 3,
+      weekly_xp: 1000,
+      target_level: 10
+    }
+  },
+  total_quests_completed: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  last_quest_date: {
+    type: DataTypes.DATEONLY
   },
   created_at: {
     type: DataTypes.DATE,
@@ -43,5 +68,49 @@ const User = sequelize.define('User', {
   tableName: 'users',
   timestamps: false
 });
+
+// Méthodes de classe pour la gamification
+User.prototype.calculateLevel = function() {
+  // 100 XP par niveau, difficulté progressive
+  return Math.floor(Math.sqrt(this.xp / 100)) + 1;
+};
+
+User.prototype.getXpForNextLevel = function() {
+  const currentLevel = this.calculateLevel();
+  const nextLevelXp = Math.pow(currentLevel, 2) * 100;
+  return nextLevelXp - this.xp;
+};
+
+User.prototype.addXp = async function(xpAmount) {
+  const oldLevel = this.level;
+  this.xp += xpAmount;
+  this.level = this.calculateLevel();
+  
+  await this.save();
+  
+  // Retourne true si level up
+  return this.level > oldLevel;
+};
+
+User.prototype.updateStreak = async function() {
+  const today = new Date().toISOString().split('T')[0];
+  const lastQuestDate = this.last_quest_date;
+  
+  if (!lastQuestDate) {
+    this.streak = 1;
+  } else {
+    const daysDiff = (new Date(today) - new Date(lastQuestDate)) / (1000 * 60 * 60 * 24);
+    
+    if (daysDiff === 1) {
+      this.streak += 1;
+    } else if (daysDiff > 1) {
+      this.streak = 1;
+    }
+    // Si daysDiff === 0, on garde le streak actuel
+  }
+  
+  this.last_quest_date = today;
+  await this.save();
+};
 
 module.exports = User;
