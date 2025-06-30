@@ -1,20 +1,8 @@
 const User = require('./User');
-const Project = require('./Project');
 const Quest = require('./Quest');
 const Achievement = require('./Achievement');
 const UserQuest = require('./UserQuest');
 const UserAchievement = require('./UserAchievement');
-
-// Relations User - Project (gardées pour compatibilité)
-User.hasMany(Project, {
-  foreignKey: 'userId',
-  as: 'projects'
-});
-
-Project.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
-});
 
 // Relations Many-to-Many entre Users et Quests via UserQuest
 User.belongsToMany(Quest, { 
@@ -61,7 +49,6 @@ UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id' });
 
 module.exports = {
   User,
-  Project,
   Quest,
   Achievement,
   UserQuest,

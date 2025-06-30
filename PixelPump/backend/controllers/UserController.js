@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const Project = require('../models/Project');
 const bcrypt = require('bcrypt');
 
 const UserController = {
@@ -91,11 +90,7 @@ const UserController = {
   async getUserProfile(req, res) {
     try {
       const user = await User.findByPk(req.params.id, {
-        attributes: { exclude: ['password'] },
-        include: [{
-          model: Project,
-          as: 'projects'
-        }]
+        attributes: { exclude: ['password'] }
       });
       
       if (!user) {
@@ -279,24 +274,6 @@ const UserController = {
       res.status(500).json({ 
         success: false,
         message: error.message 
-      });
-    }
-  },
-
-  async getUserProjects(req, res) {
-    try {
-      const projects = await Project.findAll({
-        where: { userId: req.params.id }
-      });
-      res.json({
-        success: true,
-        data: projects
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        success: false,
-        message: 'Erreur serveur', 
-        error: error.message 
       });
     }
   }

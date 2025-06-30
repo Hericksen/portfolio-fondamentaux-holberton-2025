@@ -5,7 +5,6 @@ interface DatabaseStats {
   totalUsers: number;
   totalQuests: number;
   totalAchievements: number;
-  totalProjects: number;
   completedQuests: number;
   unlockedAchievements: number;
   activeUsers: number;
@@ -34,7 +33,6 @@ const Database: React.FC = () => {
     { key: 'users', name: 'Utilisateurs', icon: '👥' },
     { key: 'quests', name: 'Quêtes', icon: '🎯' },
     { key: 'achievements', name: 'Achievements', icon: '🏆' },
-    { key: 'projects', name: 'Projets', icon: '💼' },
     { key: 'stats', name: 'Statistiques', icon: '📊' }
   ];
 
@@ -206,21 +204,6 @@ const Database: React.FC = () => {
           </div>
           <div style={{ color: '#06ffa5', textTransform: 'uppercase' }}>
             Achievements
-          </div>
-        </div>
-
-        <div style={{
-          background: 'rgba(255, 180, 0, 0.1)',
-          border: '2px solid #ffb400',
-          borderRadius: '10px',
-          padding: '20px',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '2rem', color: '#ffb400', fontWeight: 'bold' }}>
-            {stats.totalProjects}
-          </div>
-          <div style={{ color: '#ffb400', textTransform: 'uppercase' }}>
-            Projets
           </div>
         </div>
 

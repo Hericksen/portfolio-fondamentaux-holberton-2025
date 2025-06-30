@@ -16,7 +16,6 @@ router.get('/', (req, res) => {
       "GET /api/database/users": "Récupérer tous les utilisateurs avec leurs relations",
       "GET /api/database/quests": "Récupérer toutes les quêtes avec les utilisateurs assignés",
       "GET /api/database/achievements": "Récupérer tous les achievements avec les utilisateurs",
-      "GET /api/database/projects": "Récupérer tous les projets avec leurs utilisateurs",
       "GET /api/database/stats": "Récupérer les statistiques générales",
       "GET /api/database/users/:id": "Récupérer un utilisateur spécifique avec toutes ses données"
     },
@@ -32,7 +31,6 @@ router.get('/', (req, res) => {
 router.get('/users', DatabaseController.getAllUsers);
 router.get('/quests', DatabaseController.getAllQuests);
 router.get('/achievements', DatabaseController.getAllAchievements);
-router.get('/projects', DatabaseController.getAllProjects);
 router.get('/stats', DatabaseController.getStats);
 router.get('/users/:id', DatabaseController.getUserById);
 

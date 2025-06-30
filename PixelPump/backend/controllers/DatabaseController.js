@@ -1,4 +1,4 @@
-const { User, Project, Quest, Achievement, UserQuest, UserAchievement } = require('../models/index');
+const { User, Quest, Achievement, UserQuest, UserAchievement } = require('../models/index');
 const { Op } = require('sequelize');
 
 const DatabaseController = {
@@ -8,11 +8,6 @@ const DatabaseController = {
       const users = await User.findAll({
         attributes: { exclude: ['password'] },
         include: [
-          {
-            model: Project,
-            as: 'projects',
-            attributes: ['id', 'title', 'description', 'createdAt']
-          },
           {
             model: Quest,
             as: 'assignedQuests',
@@ -116,35 +111,6 @@ const DatabaseController = {
     }
   },
 
-  // Récupérer tous les projets avec leurs utilisateurs
-  async getAllProjects(req, res) {
-    try {
-      const projects = await Project.findAll({
-        include: [
-          {
-            model: User,
-            as: 'user',
-            attributes: ['id', 'username', 'email', 'level', 'xp']
-          }
-        ],
-        order: [['created_at', 'DESC']]
-      });
-
-      res.json({
-        success: true,
-        data: projects,
-        count: projects.length
-      });
-    } catch (error) {
-      console.error('Erreur lors de la récupération des projets:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erreur lors de la récupération des projets',
-        error: error.message
-      });
-    }
-  },
-
   // Récupérer les statistiques générales
   async getStats(req, res) {
     try {
@@ -152,7 +118,6 @@ const DatabaseController = {
         totalUsers,
         totalQuests,
         totalAchievements,
-        totalProjects,
         completedQuests,
         unlockedAchievements,
         activeUsers
@@ -160,7 +125,6 @@ const DatabaseController = {
         User.count(),
         Quest.count(),
         Achievement.count(),
-        Project.count(),
         UserQuest.count({ where: { is_completed: true } }),
         UserAchievement.count(),
         User.count({
@@ -178,7 +142,6 @@ const DatabaseController = {
           totalUsers,
           totalQuests,
           totalAchievements,
-          totalProjects,
           completedQuests,
           unlockedAchievements,
           activeUsers,
@@ -203,10 +166,6 @@ const DatabaseController = {
       const user = await User.findByPk(id, {
         attributes: { exclude: ['password'] },
         include: [
-          {
-            model: Project,
-            as: 'projects'
-          },
           {
             model: Quest,
             as: 'assignedQuests',

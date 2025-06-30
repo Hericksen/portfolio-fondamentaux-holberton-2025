@@ -29,7 +29,4 @@ router.put('/:id', userController.update);
 // Supprimer un utilisateur
 router.delete('/:id', userController.remove);
 
-// Récupérer les projets d'un utilisateur
-router.get('/:id/projects', userController.getUserProjects);
-
 module.exports = router;
