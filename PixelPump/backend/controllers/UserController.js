@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const UserService = require('../services/UserService');
 const bcrypt = require('bcrypt');
 
 const UserController = {
@@ -274,6 +275,82 @@ const UserController = {
       res.status(500).json({ 
         success: false,
         message: error.message 
+      });
+    }
+  },
+
+  async getProfile(req, res) {
+    try {
+      const userId = req.user.userId;
+      const user = await User.findByPk(userId, {
+        attributes: { exclude: ['password'] }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      // S'assurer que le profil est complet
+      user.initializeProfile();
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Profil récupéré avec succès',
+        profile: user
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
+      });
+    }
+  },
+
+  async updateProfile(req, res) {
+    try {
+      const userId = req.user.userId;
+      const updates = req.body;
+
+      // Champs autorisés pour la mise à jour du profil
+      const allowedFields = ['username', 'avatar', 'fitness_goals', 'preferences'];
+      const filteredUpdates = {};
+
+      for (const field of allowedFields) {
+        if (updates[field] !== undefined) {
+          filteredUpdates[field] = updates[field];
+        }
+      }
+
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      await user.update(filteredUpdates);
+
+      const userResponse = user.toJSON();
+      delete userResponse.password;
+
+      res.json({
+        success: true,
+        message: 'Profil mis à jour avec succès',
+        profile: userResponse
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
       });
     }
   }

@@ -9,6 +9,10 @@ router.post('/', userController.create);
 // Routes protégées
 router.use(authMiddleware);
 
+// Routes du profil utilisateur courant
+router.get('/profile/me', userController.getProfile);
+router.put('/profile/me', userController.updateProfile);
+
 // Récupérer tous les utilisateurs
 router.get('/', userController.getAll);
 

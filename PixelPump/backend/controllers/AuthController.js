@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const UserService = require('../services/UserService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -36,29 +37,18 @@ const AuthController = {
       // Hacher le mot de passe
       const hashedPassword = await bcrypt.hash(password, 12);
       
-      // Créer l'utilisateur avec un profil vierge par défaut
-      const user = await User.create({
+      // Créer l'utilisateur avec un profil complet par défaut via UserService
+      const user = await UserService.createUserWithProfile({
         username,
         email,
-        password: hashedPassword,
-        level: 1,
-        xp: 0,
-        avatar: {
-          body: 'default',
-          outfit: 'casual',
-          accessory: 'none',
-          color: '#ff006e'
-        },
-        streak: 0,
-        fitness_goals: {
-          daily_quests: 3,
-          weekly_xp: 1000,
-          target_level: 10
-        },
-        total_quests_completed: 0,
-        last_quest_date: null,
-        last_login: null
+        password
       });
+
+      console.log(`✅ Nouvel utilisateur créé: ${username} (${email})`);
+      console.log(`🎮 Profil vierge initialisé avec avatar par défaut`);
+      console.log(`📊 Stats initiales: Level 1, 0 XP, 0 streak`);
+      console.log(`🎯 Objectifs fitness configurés par défaut`);
+      console.log(`⚙️ Préférences utilisateur initialisées`);
 
       // Générer le token JWT
       const token = jwt.sign(
@@ -117,6 +107,13 @@ const AuthController = {
           message: 'Identifiants invalides'
         });
       }
+
+      // Mettre à jour les stats de connexion
+      await user.updateLoginStats();
+      
+      // S'assurer que le profil est complet (pour les anciens utilisateurs)
+      user.initializeProfile();
+      await user.save();
 
       // Générer le token JWT
       const token = jwt.sign(

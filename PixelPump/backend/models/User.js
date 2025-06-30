@@ -39,7 +39,8 @@ const User = sequelize.define('User', {
       body: 'default',
       outfit: 'casual',
       accessory: 'none',
-      color: '#ff006e'
+      color: '#ff006e',
+      background: 'gym'
     }
   },
   streak: {
@@ -51,7 +52,26 @@ const User = sequelize.define('User', {
     defaultValue: {
       daily_quests: 3,
       weekly_xp: 1000,
-      target_level: 10
+      target_level: 10,
+      preferred_activities: ['cardio', 'strength', 'flexibility']
+    }
+  },
+  preferences: {
+    type: DataTypes.JSON,
+    defaultValue: {
+      notification_enabled: true,
+      difficulty_preference: 'normal',
+      quest_reminders: true,
+      achievement_notifications: true
+    }
+  },
+  stats: {
+    type: DataTypes.JSON,
+    defaultValue: {
+      total_quests_completed: 0,
+      total_achievements_unlocked: 0,
+      best_streak: 0,
+      total_xp_earned: 0
     }
   },
   total_quests_completed: {
@@ -107,6 +127,10 @@ User.prototype.updateStreak = async function() {
     
     if (daysDiff === 1) {
       this.streak += 1;
+      // Mettre à jour le meilleur streak si nécessaire
+      if (this.stats && this.streak > this.stats.best_streak) {
+        this.stats.best_streak = this.streak;
+      }
     } else if (daysDiff > 1) {
       this.streak = 1;
     }
@@ -115,6 +139,39 @@ User.prototype.updateStreak = async function() {
   
   this.last_quest_date = today;
   await this.save();
+};
+
+User.prototype.updateLoginStats = async function() {
+  this.last_login = new Date();
+  await this.save();
+  console.log(`📝 Login stats updated for user ${this.username}`);
+};
+
+User.prototype.initializeProfile = function() {
+  // S'assurer que tous les champs du profil sont initialisés
+  if (!this.stats) {
+    this.stats = {
+      total_quests_completed: 0,
+      total_achievements_unlocked: 0,
+      best_streak: 0,
+      total_xp_earned: 0
+    };
+  }
+  
+  if (!this.preferences) {
+    this.preferences = {
+      notification_enabled: true,
+      difficulty_preference: 'normal',
+      quest_reminders: true,
+      achievement_notifications: true
+    };
+  }
+  
+  if (!this.avatar.background) {
+    this.avatar.background = 'gym';
+  }
+  
+  return this;
 };
 
 module.exports = User;
