@@ -18,6 +18,9 @@ const Admin: React.FC = () => {
   const [token, setToken] = useState('');
   const [adminSecret, setAdminSecret] = useState('');
   const [adminTokenStatus, setAdminTokenStatus] = useState('');
+  const [resetStatus, setResetStatus] = useState('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
 
   // Pour récupérer le token depuis localStorage ou le saisir manuellement
   useEffect(() => {
@@ -77,6 +80,39 @@ const Admin: React.FC = () => {
     e.preventDefault();
     if (token) {
       fetchUsers(token);
+    }
+  };
+
+  const handleResetAllUsers = async () => {
+    if (resetConfirmText !== 'RESET') {
+      setResetStatus('❌ Vous devez taper "RESET" pour confirmer');
+      return;
+    }
+
+    try {
+      setResetStatus('🔄 Réinitialisation en cours...');
+      
+      const response = await fetch('http://localhost:3001/api/database/reset-users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setResetStatus(`✅ ${data.message} (${data.data.usersReset} utilisateurs réinitialisés)`);
+        setShowResetConfirm(false);
+        setResetConfirmText('');
+        // Recharger la liste des utilisateurs
+        fetchUsers(token);
+      } else {
+        setResetStatus(`❌ Erreur: ${data.message || 'Erreur lors de la réinitialisation'}`);
+      }
+    } catch (error: any) {
+      setResetStatus(`❌ Erreur de connexion: ${error.message}`);
     }
   };
 
@@ -350,6 +386,140 @@ const Admin: React.FC = () => {
           </div>
         )}
 
+        {/* Danger Zone - Reset Users */}
+        {token && !loading && (
+          <div style={{
+            background: 'rgba(51, 0, 0, 0.8)',
+            border: '2px solid #ff0000',
+            borderRadius: '10px',
+            padding: '20px',
+            marginBottom: '30px',
+            boxShadow: '0 0 20px rgba(255, 0, 0, 0.3)'
+          }}>
+            <h2 style={{ color: '#ff0000', marginBottom: '15px', textAlign: 'center' }}>
+              ⚠️ ZONE DANGEREUSE ⚠️
+            </h2>
+            <div style={{ color: '#ffaaaa', marginBottom: '20px', textAlign: 'center' }}>
+              Cette section contient des actions IRRÉVERSIBLES qui peuvent détruire des données.
+            </div>
+            
+            {!showResetConfirm ? (
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  style={{
+                    padding: '15px 30px',
+                    background: 'linear-gradient(45deg, #ff0000, #cc0000)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 0 15px rgba(255, 0, 0, 0.5)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 0 25px rgba(255, 0, 0, 0.7)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
+                  }}
+                >
+                  🔥 Réinitialiser TOUS les utilisateurs
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ color: '#ff6666', marginBottom: '20px', textAlign: 'center' }}>
+                  <strong>ATTENTION :</strong> Cette action va :
+                  <ul style={{ textAlign: 'left', margin: '10px 0', paddingLeft: '40px' }}>
+                    <li>Remettre l'XP de tous les utilisateurs à 0</li>
+                    <li>Remettre le niveau de tous les utilisateurs à 1</li>
+                    <li>Réinitialiser le streak à 0</li>
+                    <li>Supprimer toutes les quêtes complétées</li>
+                    <li>Supprimer tous les achievements débloqués</li>
+                    <li>Remettre l'avatar par défaut</li>
+                  </ul>
+                </div>
+                
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', color: '#ffaaaa', marginBottom: '10px' }}>
+                    Pour confirmer, tapez exactement "RESET" :
+                  </label>
+                  <input
+                    type="text"
+                    value={resetConfirmText}
+                    onChange={(e) => setResetConfirmText(e.target.value)}
+                    placeholder="Tapez RESET pour confirmer"
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      background: 'rgba(0, 0, 0, 0.5)',
+                      border: '2px solid #ff0000',
+                      borderRadius: '5px',
+                      color: 'white',
+                      fontSize: '1rem'
+                    }}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setShowResetConfirm(false);
+                      setResetConfirmText('');
+                      setResetStatus('');
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: 'transparent',
+                      border: '2px solid #666',
+                      borderRadius: '5px',
+                      color: '#666',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleResetAllUsers}
+                    disabled={resetConfirmText !== 'RESET'}
+                    style={{
+                      padding: '10px 20px',
+                      background: resetConfirmText === 'RESET' ? 'linear-gradient(45deg, #ff0000, #cc0000)' : '#333',
+                      border: 'none',
+                      borderRadius: '5px',
+                      color: 'white',
+                      cursor: resetConfirmText === 'RESET' ? 'pointer' : 'not-allowed',
+                      fontWeight: 'bold',
+                      opacity: resetConfirmText === 'RESET' ? 1 : 0.5
+                    }}
+                  >
+                    🔥 EXÉCUTER LA RÉINITIALISATION
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {resetStatus && (
+              <div style={{
+                marginTop: '20px',
+                padding: '15px',
+                background: 'rgba(0, 0, 0, 0.5)',
+                border: '1px solid #666',
+                borderRadius: '5px',
+                color: resetStatus.includes('✅') ? '#00ff00' : resetStatus.includes('❌') ? '#ff6666' : '#ffff66'
+              }}>
+                {resetStatus}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Users List */}
         {token && !loading && users.length > 0 && (
           <div style={{
@@ -417,6 +587,84 @@ const Admin: React.FC = () => {
             boxShadow: '0 0 20px rgba(255, 190, 11, 0.3)'
           }}>
             <div style={{ color: '#ffbe0b', fontSize: '1.2rem' }}>Aucun utilisateur trouvé</div>
+          </div>
+        )}
+
+        {/* Reset Users Section */}
+        {token && (
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.8)',
+            border: '2px solid #ffbe0b',
+            borderRadius: '10px',
+            padding: '20px',
+            marginTop: '20px',
+            boxShadow: '0 0 20px rgba(255, 190, 11, 0.3)'
+          }}>
+            <h3 style={{ color: '#ffbe0b', marginBottom: '15px' }}>🔄 Réinitialisation des Utilisateurs</h3>
+            <p style={{ marginBottom: '15px', color: '#ddd' }}>
+              Cette action réinitialisera tous les utilisateurs à leurs valeurs par défaut. 
+              Veuillez confirmer en tapant <strong>"RESET"</strong> dans le champ ci-dessous.
+            </p>
+            
+            {showResetConfirm ? (
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="Tapez RESET pour confirmer"
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    border: '2px solid #ffbe0b',
+                    borderRadius: '5px',
+                    color: 'white',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  onClick={handleResetAllUsers}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#ffbe0b',
+                    border: 'none',
+                    color: 'white',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  CONFIRMER RÉINITIALISATION
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                style={{
+                  padding: '10px 20px',
+                  background: 'transparent',
+                  border: '2px solid #ffbe0b',
+                  color: '#ffbe0b',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  marginBottom: '10px'
+                }}
+              >
+                DEMANDER CONFIRMATION
+              </button>
+            )}
+
+            {resetStatus && (
+              <div style={{ 
+                padding: '8px', 
+                background: 'rgba(0, 0, 0, 0.3)', 
+                borderRadius: '4px',
+                fontSize: '0.9rem',
+                color: resetStatus.includes('✅') ? '#4ade80' : '#ef4444'
+              }}>
+                {resetStatus}
+              </div>
+            )}
           </div>
         )}
       </div>

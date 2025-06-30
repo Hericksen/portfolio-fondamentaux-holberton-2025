@@ -17,7 +17,8 @@ router.get('/', (req, res) => {
       "GET /api/database/quests": "Récupérer toutes les quêtes avec les utilisateurs assignés",
       "GET /api/database/achievements": "Récupérer tous les achievements avec les utilisateurs",
       "GET /api/database/stats": "Récupérer les statistiques générales",
-      "GET /api/database/users/:id": "Récupérer un utilisateur spécifique avec toutes ses données"
+      "GET /api/database/users/:id": "Récupérer un utilisateur spécifique avec toutes ses données",
+      "POST /api/database/reset-users": "⚠️ DANGEREUX: Réinitialiser tous les utilisateurs à 0"
     },
     adminInfo: {
       user: req.user.email,
@@ -33,5 +34,8 @@ router.get('/quests', DatabaseController.getAllQuests);
 router.get('/achievements', DatabaseController.getAllAchievements);
 router.get('/stats', DatabaseController.getStats);
 router.get('/users/:id', DatabaseController.getUserById);
+
+// Route dangereuse de réinitialisation (POST pour plus de sécurité)
+router.post('/reset-users', DatabaseController.resetAllUsers);
 
 module.exports = router;

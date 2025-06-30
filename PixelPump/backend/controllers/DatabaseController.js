@@ -1,5 +1,6 @@
 const { User, Quest, Achievement, UserQuest, UserAchievement } = require('../models/index');
 const { Op } = require('sequelize');
+const { resetAllUsers } = require('../scripts/resetAllUsers');
 
 const DatabaseController = {
   // Récupérer tous les utilisateurs avec leurs relations
@@ -201,6 +202,52 @@ const DatabaseController = {
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération de l\'utilisateur',
+        error: error.message
+      });
+    }
+  },
+
+  // Réinitialiser tous les utilisateurs
+  async resetAllUsers(req, res) {
+    try {
+      console.log('🔄 Demande de réinitialisation de tous les utilisateurs par admin:', req.user?.email);
+      
+      // Vérifier que l'utilisateur est admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Accès refusé. Seuls les administrateurs peuvent réinitialiser les utilisateurs.'
+        });
+      }
+
+      // Exécuter la réinitialisation
+      await resetAllUsers();
+      
+      // Compter les utilisateurs après réinitialisation
+      const userCount = await User.count();
+      
+      res.json({
+        success: true,
+        message: 'Tous les utilisateurs ont été réinitialisés avec succès',
+        data: {
+          usersReset: userCount,
+          resetDetails: {
+            xp: 0,
+            level: 1,
+            streak: 0,
+            totalQuestsCompleted: 0,
+            lastQuestDate: null,
+            avatar: 'default',
+            userQuestsDeleted: true,
+            userAchievementsDeleted: true
+          }
+        }
+      });
+    } catch (error) {
+      console.error('❌ Erreur lors de la réinitialisation des utilisateurs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la réinitialisation des utilisateurs',
         error: error.message
       });
     }
