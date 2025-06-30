@@ -21,11 +21,12 @@ app.get('/', (req, res) => {
     status: 'operational',
     timestamp: new Date().toISOString(),
     endpoints: {
-      auth: '/api/auth (POST /register, POST /login, GET /verify)',
+      auth: '/api/auth (POST /register, POST /login, GET /verify, POST /admin-token)',
       users: '/api/users (GET /, GET /:id, POST /, PUT /:id, DELETE /:id)',
       projects: '/api/projects (GET /, GET /:id, POST /, PUT /:id, DELETE /:id)',
       quests: '/api/quests (GET /, POST /, GET /user/:userId, PUT /:questId/complete)',
-      achievements: '/api/achievements (GET /, POST /, GET /user/:userId, PUT /:achievementId/unlock)'
+      achievements: '/api/achievements (GET /, POST /, GET /user/:userId, PUT /:achievementId/unlock)',
+      database: '/api/database (🔒 Admin only - GET /users, /quests, /achievements, /projects, /stats)'
     }
   });
 });
@@ -47,6 +48,7 @@ try {
   const projectRoutes = require('./routes/projectRoutes');
   const questRoutes = require('./routes/questRoutes');
   const achievementRoutes = require('./routes/achievementRoutes');
+  const databaseRoutes = require('./routes/databaseRoutes');
 
   // Utilisation des routes
   app.use('/api/auth', authRoutes);
@@ -54,6 +56,7 @@ try {
   app.use('/api/projects', projectRoutes);
   app.use('/api/quests', questRoutes);
   app.use('/api/achievements', achievementRoutes);
+  app.use('/api/database', databaseRoutes);
   
   console.log('✅ Routes API configurées');
 } catch (error) {

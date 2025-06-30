@@ -45,7 +45,7 @@ const AuthController = {
 
       // Générer le token JWT
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
         { expiresIn: '24h' }
       );
@@ -103,7 +103,7 @@ const AuthController = {
 
       // Générer le token JWT
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
         { expiresIn: '24h' }
       );
@@ -162,6 +162,49 @@ const AuthController = {
       res.status(401).json({
         success: false,
         message: 'Token invalide'
+      });
+    }
+  },
+
+  async getAdminToken(req, res) {
+    try {
+      const { adminSecret } = req.body;
+      
+      // Vérifier le secret d'admin (pour des raisons de sécurité en développement)
+      const ADMIN_SECRET = process.env.ADMIN_SECRET || 'pixelpump_admin_2025';
+      
+      if (adminSecret !== ADMIN_SECRET) {
+        return res.status(401).json({
+          success: false,
+          message: 'Secret administrateur invalide'
+        });
+      }
+
+      // Créer un token d'administrateur temporaire
+      const adminToken = jwt.sign(
+        { 
+          userId: 'admin-temp', 
+          email: 'admin@pixelpump.dev', 
+          role: 'admin',
+          isTemporary: true 
+        },
+        process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
+        { expiresIn: '1h' }
+      );
+
+      res.json({
+        success: true,
+        message: 'Token administrateur généré',
+        token: adminToken,
+        expiresIn: '1h',
+        note: 'Token temporaire pour les permissions administrateur'
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération du token admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
       });
     }
   }

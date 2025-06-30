@@ -16,9 +16,9 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const success = await login({ email, password });
-      if (!success) {
-        setError('Invalid credentials. Please try again.');
+      const result = await login({ email, password });
+      if (!result.success) {
+        setError(result.message || 'Invalid credentials. Please try again.');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');

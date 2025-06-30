@@ -26,17 +26,12 @@ interface User {
   last_login: string | null;
 }
 
-interface AuthResult {
-  success: boolean;
-  message?: string;
-}
-
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<AuthResult>;
-  register: (userData: { email: string; password: string; username: string }) => Promise<AuthResult>;
+  login: (credentials: { email: string; password: string }) => Promise<boolean>;
+  register: (userData: { email: string; password: string; username: string }) => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -76,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (credentials: { email: string; password: string }): Promise<AuthResult> => {
+  const login = async (credentials: { email: string; password: string }): Promise<boolean> => {
     try {
       const response = await api.post('/auth/login', credentials);
       
@@ -87,17 +82,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         localStorage.setItem('pixelpump_user', JSON.stringify(userData));
         localStorage.setItem('token', token);
-        return { success: true };
+        return true;
       }
-      return { success: false, message: response.data.message || 'Échec de la connexion' };
-    } catch (error: any) {
+      return false;
+    } catch (error) {
       console.error('Login error:', error);
-      const message = error.response?.data?.message || 'Erreur de connexion';
-      return { success: false, message };
+      return false;
     }
   };
 
-  const register = async (userData: { email: string; password: string; username: string }): Promise<AuthResult> => {
+  const register = async (userData: { email: string; password: string; username: string }): Promise<boolean> => {
     try {
       const response = await api.post('/auth/register', userData);
       
@@ -108,13 +102,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userInfo);
         localStorage.setItem('pixelpump_user', JSON.stringify(userInfo));
         localStorage.setItem('token', token);
-        return { success: true };
+        return true;
       }
-      return { success: false, message: response.data.message || 'Échec de l\'inscription' };
-    } catch (error: any) {
+      return false;
+    } catch (error) {
       console.error('Registration error:', error);
-      const message = error.response?.data?.message || 'Erreur lors de l\'inscription';
-      return { success: false, message };
+      return false;
     }
   };
 

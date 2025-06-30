@@ -80,6 +80,30 @@ const Admin: React.FC = () => {
     }
   };
 
+  const loginAsAdmin = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@pixelpump.com',
+          password: 'password123'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setToken(data.token);
+        localStorage.setItem('token', data.token);
+        fetchUsers(data.token);
+      } else {
+        setError('Erreur de connexion');
+      }
+    } catch (err) {
+      setError('Erreur de connexion au serveur');
+    }
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -235,65 +259,6 @@ const Admin: React.FC = () => {
             boxShadow: '0 0 20px rgba(131, 56, 236, 0.3)'
           }}>
             <h3 style={{ color: '#8338ec', marginBottom: '15px' }}>🧪 Test des Permissions Administrateur</h3>
-            
-            {/* Section pour obtenir un token admin si on a déjà un token user */}
-            <div style={{ 
-              background: 'rgba(255, 0, 110, 0.1)', 
-              padding: '15px', 
-              borderRadius: '8px', 
-              marginBottom: '15px',
-              border: '1px solid #ff006e'
-            }}>
-              <h4 style={{ color: '#ff006e', marginBottom: '10px' }}>🔑 Obtenir les Droits Administrateur</h4>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-                <input
-                  type="password"
-                  placeholder="Secret administrateur"
-                  value={adminSecret}
-                  onChange={(e) => setAdminSecret(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    background: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid #ff006e',
-                    borderRadius: '4px',
-                    color: 'white',
-                    outline: 'none'
-                  }}
-                />
-                <button
-                  onClick={getAdminToken}
-                  disabled={!adminSecret}
-                  style={{
-                    padding: '8px 16px',
-                    background: adminSecret ? '#ff006e' : 'rgba(255, 0, 110, 0.3)',
-                    border: 'none',
-                    color: 'white',
-                    borderRadius: '4px',
-                    cursor: adminSecret ? 'pointer' : 'not-allowed',
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  🔓 OBTENIR DROITS ADMIN
-                </button>
-              </div>
-              {adminTokenStatus && (
-                <div style={{ 
-                  padding: '8px', 
-                  background: 'rgba(0, 0, 0, 0.3)', 
-                  borderRadius: '4px',
-                  fontSize: '0.9rem',
-                  color: adminTokenStatus.includes('✅') ? '#4ade80' : '#ef4444'
-                }}>
-                  {adminTokenStatus}
-                </div>
-              )}
-              <div style={{ fontSize: '0.8rem', color: '#999', marginTop: '5px' }}>
-                Secret par défaut: <strong>pixelpump_admin_2025</strong>
-              </div>
-            </div>
-
             <button
               onClick={async () => {
                 try {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/AuthController');
+const adminMiddleware = require('../middleware/adminMiddleware');
 
 // Route d'information sur les endpoints disponibles
 router.get('/', (req, res) => {
@@ -40,5 +41,18 @@ router.post('/login', authController.login);
 
 // Route de test de token
 router.get('/verify', authController.verifyToken);
+
+// Route pour obtenir un token d'administrateur
+router.post('/admin-token', authController.getAdminToken);
+
+// Route de test pour vérifier les permissions d'admin
+router.get('/admin-test', adminMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: '🔑 Accès administrateur confirmé !',
+    user: req.user,
+    timestamp: new Date().toISOString()
+  });
+});
 
 module.exports = router;

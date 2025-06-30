@@ -121,32 +121,42 @@ async function seedDatabase() {
         title: 'Premier projet',
         description: 'Félicitations ! Vous avez créé votre premier projet',
         icon: '🎉',
-        condition: 'create_first_project'
+        condition: 'create_first_project',
+        condition_type: 'specific_quest',
+        condition_value: 1
       },
       {
         title: 'Développeur Frontend',
         description: 'Maîtrisez les technologies frontend',
         icon: '💻',
-        condition: 'complete_5_frontend_quests'
+        condition: 'complete_5_frontend_quests',
+        condition_type: 'quest_count',
+        condition_value: 5
       },
       {
         title: 'Maître Backend',
         description: 'Expert en développement backend',
         icon: '⚙️',
-        condition: 'complete_5_backend_quests'
+        condition: 'complete_5_backend_quests',
+        condition_type: 'quest_count',
+        condition_value: 5
       },
       {
         title: 'Full Stack Hero',
         description: 'Vous maîtrisez le développement complet',
         icon: '🦸',
         condition: 'complete_fullstack_project',
-        isRare: true
+        condition_type: 'specific_quest',
+        condition_value: 1,
+        rarity: 'rare'
       },
       {
         title: 'Niveau 5 atteint',
         description: 'Vous avez atteint le niveau 5 !',
         icon: '🏆',
-        condition: 'reach_level_5'
+        condition: 'reach_level_5',
+        condition_type: 'level',
+        condition_value: 5
       }
     ]);
 

@@ -33,13 +33,13 @@ const Register: React.FC = () => {
     }
 
     try {
-      const success = await register({
+      const result = await register({
         username: formData.username,
         email: formData.email,
         password: formData.password
       });
-      if (!success) {
-        setError('Erreur lors de la création du compte. Veuillez réessayer.');
+      if (!result.success) {
+        setError(result.message || 'Erreur lors de la création du compte. Veuillez réessayer.');
       }
     } catch (err) {
       setError('Une erreur s\'est produite. Veuillez réessayer.');
