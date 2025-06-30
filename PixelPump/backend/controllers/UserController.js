@@ -353,6 +353,137 @@ const UserController = {
         error: error.message
       });
     }
+  },
+
+  // Récupérer toutes les données du dashboard personnel de l'utilisateur
+  async getDashboard(req, res) {
+    try {
+      const userId = req.user.userId;
+      const GamificationService = require('../services/GamificationService');
+      
+      // Récupérer les données complètes de l'utilisateur
+      const user = await User.findByPk(userId, {
+        attributes: { exclude: ['password'] }
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      // S'assurer que le profil est complet
+      user.initializeProfile();
+      await user.save();
+
+      // Récupérer les données de progression
+      const progress = await GamificationService.getUserProgress(userId);
+
+      // Calculer des statistiques additionnelles pour le dashboard
+      const { UserQuest, UserAchievement, Quest, Achievement } = require('../models');
+      
+      // Quêtes récentes (dernières 5)
+      const recentQuests = await UserQuest.findAll({
+        where: { user_id: userId },
+        include: [{ 
+          model: Quest,
+          attributes: ['id', 'title', 'description', 'category', 'xp_reward', 'difficulty']
+        }],
+        order: [['assigned_at', 'DESC']],
+        limit: 5
+      });
+
+      // Achievements récents (derniers 3)
+      const recentAchievements = await UserAchievement.findAll({
+        where: { user_id: userId },
+        include: [{ 
+          model: Achievement,
+          attributes: ['id', 'title', 'description', 'icon', 'rarity', 'xp_reward']
+        }],
+        order: [['unlocked_at', 'DESC']],
+        limit: 3
+      });
+
+      // Statistiques hebdomadaires
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const weeklyStats = {
+        questsCompleted: await UserQuest.count({
+          where: {
+            user_id: userId,
+            is_completed: true,
+            completed_at: { [require('sequelize').Op.gte]: weekAgo }
+          }
+        }),
+        xpEarned: progress.user.xp - (progress.user.xp - (progress.todayQuests.completed * 50)), // Estimation approximative
+        streakDays: user.streak
+      };
+
+      // Objectifs et progression
+      const goals = {
+        dailyQuests: {
+          target: user.fitness_goals.daily_quests,
+          completed: progress.todayQuests.completed,
+          remaining: Math.max(0, user.fitness_goals.daily_quests - progress.todayQuests.completed)
+        },
+        weeklyXp: {
+          target: user.fitness_goals.weekly_xp,
+          earned: weeklyStats.xpEarned,
+          remaining: Math.max(0, user.fitness_goals.weekly_xp - weeklyStats.xpEarned)
+        },
+        targetLevel: {
+          current: user.level,
+          target: user.fitness_goals.target_level,
+          progress: Math.min(100, Math.round((user.level / user.fitness_goals.target_level) * 100))
+        }
+      };
+
+      // Dashboard data complet
+      const dashboardData = {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          level: user.level,
+          xp: user.xp,
+          streak: user.streak,
+          avatar: user.avatar,
+          fitness_goals: user.fitness_goals,
+          preferences: user.preferences,
+          stats: user.stats,
+          total_quests_completed: user.total_quests_completed,
+          last_login: user.last_login,
+          created_at: user.created_at
+        },
+        progress,
+        recentActivity: {
+          quests: recentQuests,
+          achievements: recentAchievements
+        },
+        weeklyStats,
+        goals,
+        nextLevel: {
+          xpNeeded: user.getXpForNextLevel(),
+          currentLevel: user.level,
+          progress: Math.max(0, 100 - Math.round((user.getXpForNextLevel() / (Math.pow(user.level, 2) * 100)) * 100))
+        }
+      };
+
+      res.json({
+        success: true,
+        message: 'Dashboard récupéré avec succès',
+        data: dashboardData
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération du dashboard:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
+      });
+    }
   }
 };
 

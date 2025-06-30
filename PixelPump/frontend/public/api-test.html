@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API PixelPump</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1a0033; 
+            color: white; 
+            padding: 20px; 
+        }
+        button { 
+            background: #ff006e; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #e00060; }
+        .result { 
+            background: #0a0014; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-top: 20px; 
+            white-space: pre-wrap; 
+            font-family: monospace; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test API PixelPump</h1>
+    
+    <button onclick="testHealth()">1. Test Backend Health</button>
+    <button onclick="testRegister()">2. Créer Utilisateur</button>
+    <button onclick="testLogin()">3. Se Connecter</button>
+    <button onclick="testDashboard()">4. Test Dashboard</button>
+    <button onclick="clearResults()">🗑️ Effacer</button>
+    
+    <div id="result" class="result">Prêt pour les tests...</div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let currentToken = null;
+        
+        function log(message) {
+            const result = document.getElementById('result');
+            result.textContent += new Date().toLocaleTimeString() + ' - ' + message + '\n';
+        }
+        
+        function clearResults() {
+            document.getElementById('result').textContent = 'Résultats effacés...\n';
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                log('✅ Backend Health: ' + data.status);
+            } catch (error) {
+                log('❌ Erreur Health: ' + error.message);
+            }
+        }
+        
+        async function testRegister() {
+            try {
+                const response = await fetch(API_BASE + '/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'testhtml',
+                        email: 'testhtml@example.com',
+                        password: 'password123'
+                    })
+                });
+                const data = await response.json();
+                log('✅ Utilisateur créé: ' + data.data.username);
+            } catch (error) {
+                log('❌ Erreur création: ' + error.message);
+            }
+        }
+        
+        async function testLogin() {
+            try {
+                const response = await fetch(API_BASE + '/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'testhtml@example.com',
+                        password: 'password123'
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentToken = data.token;
+                    log('✅ Connexion réussie - Token obtenu');
+                } else {
+                    log('❌ Échec connexion: ' + data.message);
+                }
+            } catch (error) {
+                log('❌ Erreur login: ' + error.message);
+            }
+        }
+        
+        async function testDashboard() {
+            if (!currentToken) {
+                log('❌ Pas de token - connectez-vous d\'abord');
+                return;
+            }
+            
+            try {
+                log('📡 Tentative dashboard avec token: ' + currentToken.substring(0, 20) + '...');
+                
+                const response = await fetch(API_BASE + '/users/dashboard/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + currentToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('📊 Status de réponse: ' + response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Dashboard OK: ' + data.data.user.username + ' (Level ' + data.data.user.level + ')');
+                } else {
+                    const errorData = await response.text();
+                    log('❌ Erreur ' + response.status + ': ' + errorData);
+                }
+            } catch (error) {
+                log('❌ Erreur dashboard: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

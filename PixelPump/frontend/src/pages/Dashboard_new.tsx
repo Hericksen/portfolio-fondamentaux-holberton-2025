@@ -4,7 +4,7 @@ import { useDashboard } from '../hooks/useDashboard';
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { user: authUser, logout } = useAuth();
+  const { logout } = useAuth();
   const { dashboardData, loading, error, refreshDashboard } = useDashboard();
 
   const handleLogout = () => {
@@ -184,21 +184,6 @@ function Dashboard() {
             }}>
               👤 Profil
             </Link>
-            {authUser?.role === 'admin' && (
-              <Link to="/admin-dashboard" style={{ 
-                color: 'gold', 
-                textDecoration: 'none', 
-                fontWeight: 'bold',
-                padding: '10px 20px',
-                borderRadius: '25px',
-                border: '2px solid gold',
-                transition: 'all 0.3s ease',
-                fontSize: '0.9rem',
-                textTransform: 'uppercase'
-              }}>
-                👑 Admin
-              </Link>
-            )}
             <button
               onClick={handleLogout}
               style={{

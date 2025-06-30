@@ -251,6 +251,80 @@ const DatabaseController = {
         error: error.message
       });
     }
+  },
+
+  // Récupérer les statistiques globales pour l'admin
+  async getAdminStats(req, res) {
+    try {
+      // Compter les utilisateurs totaux
+      const totalUsers = await User.count();
+      
+      // Compter les utilisateurs actifs (connectés dans les 7 derniers jours)
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const activeUsers = await User.count({
+        where: {
+          last_login: {
+            [Op.gte]: weekAgo
+          }
+        }
+      });
+      
+      // Compter les quêtes totales
+      const totalQuests = await Quest.count();
+      
+      // Compter les achievements totaux
+      const totalAchievements = await Achievement.count();
+      
+      // Calculer l'XP total distribué
+      const allUsers = await User.findAll({
+        attributes: ['xp']
+      });
+      const totalXpDistributed = allUsers.reduce((sum, user) => sum + user.xp, 0);
+      
+      // Utilisateurs par niveau
+      const usersByLevel = await User.findAll({
+        attributes: ['level'],
+        group: ['level'],
+        raw: true
+      });
+      
+      // Quêtes complétées cette semaine
+      const weeklyQuestsCompleted = await UserQuest.count({
+        where: {
+          is_completed: true,
+          completed_at: {
+            [Op.gte]: weekAgo
+          }
+        }
+      });
+
+      const stats = {
+        totalUsers,
+        activeUsers,
+        totalQuests,
+        totalAchievements,
+        totalXpDistributed,
+        usersByLevel,
+        weeklyQuestsCompleted,
+        generatedAt: new Date().toISOString()
+      };
+
+      res.json({
+        success: true,
+        message: 'Statistiques récupérées avec succès',
+        data: stats
+      });
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des statistiques',
+        error: error.message
+      });
+    }
   }
 };
 

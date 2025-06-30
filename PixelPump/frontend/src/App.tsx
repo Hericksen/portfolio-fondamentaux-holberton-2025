@@ -6,7 +6,9 @@ import Register from './pages/Register';
 import Quests from './pages/Quests';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import AdminDashboard from './pages/AdminDashboard';
 import Database from './pages/Database';
+import TestDashboard from './pages/TestDashboard';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -112,10 +114,26 @@ function App() {
               }
             />
             <Route
+              path="/admin-dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/database"
               element={
                 <ProtectedRoute>
                   <Database />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-dashboard"
+              element={
+                <ProtectedRoute>
+                  <TestDashboard />
                 </ProtectedRoute>
               }
             />

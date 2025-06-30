@@ -48,6 +48,23 @@ const Login: React.FC = () => {
         maxWidth: '400px',
         backdropFilter: 'blur(10px)'
       }}>
+        
+        {/* Logo et titre */}
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <div style={{
+            fontSize: '3rem',
+            background: 'linear-gradient(45deg, #ff006e, #06ffa5)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 'bold',
+            marginBottom: '10px'
+          }}>
+            ⚡ PixelPump
+          </div>
+          <p style={{ color: '#b8b8b8', fontSize: '1.1rem' }}>
+            Votre assistant fitness gamifié
+          </p>
+        </div>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{
@@ -205,6 +222,71 @@ const Login: React.FC = () => {
             {isLoading ? 'CONNEXION...' : 'SE CONNECTER'}
           </button>
         </form>
+
+        {/* Demo Buttons */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('test@example.com');
+              setPassword('password123');
+            }}
+            style={{
+              flex: 1,
+              padding: '15px',
+              background: 'linear-gradient(135deg, #06ffa5 0%, #8338ec 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
+              (e.target as HTMLButtonElement).style.boxShadow = '0 5px 15px rgba(6, 255, 165, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+              (e.target as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+          >
+            🎮 Démo User
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('admin@pixelpump.com');
+              setPassword('admin123');
+            }}
+            style={{
+              flex: 1,
+              padding: '15px',
+              background: 'linear-gradient(135deg, gold 0%, #ff006e 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
+              (e.target as HTMLButtonElement).style.boxShadow = '0 5px 15px rgba(255, 215, 0, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+              (e.target as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+          >
+            👑 Démo Admin
+          </button>
+        </div>
 
         {/* Register Link */}
         <div style={{ textAlign: 'center' }}>
