@@ -3,6 +3,7 @@ const Quest = require('./Quest');
 const Achievement = require('./Achievement');
 const UserQuest = require('./UserQuest');
 const UserAchievement = require('./UserAchievement');
+const QuestCycle = require('./QuestCycle');
 
 // Relations Many-to-Many entre Users et Quests via UserQuest
 User.belongsToMany(Quest, { 
@@ -47,10 +48,15 @@ UserAchievement.belongsTo(User, { foreignKey: 'user_id' });
 Achievement.hasMany(UserAchievement, { foreignKey: 'achievement_id', onDelete: 'CASCADE' });
 UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id' });
 
+// Relations avec QuestCycle
+QuestCycle.hasMany(UserQuest, { foreignKey: 'cycle_id', onDelete: 'SET NULL' });
+UserQuest.belongsTo(QuestCycle, { foreignKey: 'cycle_id' });
+
 module.exports = {
   User,
   Quest,
   Achievement,
   UserQuest,
-  UserAchievement
+  UserAchievement,
+  QuestCycle
 };

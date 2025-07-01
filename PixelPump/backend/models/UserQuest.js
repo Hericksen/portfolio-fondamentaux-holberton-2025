@@ -27,6 +27,15 @@ const UserQuest = sequelize.define('UserQuest', {
     },
     onDelete: 'CASCADE'
   },
+  cycle_id: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'quest_cycles',
+      key: 'id'
+    },
+    onDelete: 'SET NULL'
+  },
   is_completed: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
@@ -41,6 +50,30 @@ const UserQuest = sequelize.define('UserQuest', {
   assigned_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
+  },
+  expires_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  is_expired: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  expired_at: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  is_archived: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  streak_bonus: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  bonus_xp: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 }, {
   tableName: 'user_quests',
@@ -48,7 +81,7 @@ const UserQuest = sequelize.define('UserQuest', {
   indexes: [
     {
       unique: true,
-      fields: ['user_id', 'quest_id']
+      fields: ['user_id', 'quest_id', 'cycle_id']
     }
   ]
 });

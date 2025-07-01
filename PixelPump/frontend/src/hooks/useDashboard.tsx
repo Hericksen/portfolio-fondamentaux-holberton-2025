@@ -127,18 +127,13 @@ export const useDashboard = () => {
       
       // Vérifier si l'utilisateur est connecté
       const token = localStorage.getItem('token');
-      console.log('🔑 Token disponible:', token ? 'OUI' : 'NON');
       
       if (!token) {
         setError('Vous devez être connecté pour accéder au dashboard');
         return;
       }
       
-      console.log('📡 Tentative d\'accès à:', api.defaults.baseURL + '/users/dashboard/me');
-      
       const response = await api.get('/users/dashboard/me');
-      
-      console.log('✅ Réponse reçue:', response.data);
       
       if (response.data.success) {
         setDashboardData(response.data.data);

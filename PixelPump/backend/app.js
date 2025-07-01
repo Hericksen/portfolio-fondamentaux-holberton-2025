@@ -47,6 +47,7 @@ try {
   const questRoutes = require('./routes/questRoutes');
   const achievementRoutes = require('./routes/achievementRoutes');
   const databaseRoutes = require('./routes/databaseRoutes');
+  const advancedQuestRoutes = require('./routes/advancedQuestRoutes');
 
   // Utilisation des routes
   app.use('/api/auth', authRoutes);
@@ -54,6 +55,7 @@ try {
   app.use('/api/quests', questRoutes);
   app.use('/api/achievements', achievementRoutes);
   app.use('/api/database', databaseRoutes);
+  app.use('/api/advanced-quests', advancedQuestRoutes);
   
   console.log('✅ Routes API configurées');
 } catch (error) {
@@ -92,17 +94,17 @@ async function startServer() {
     require('./models/index');
     console.log('✅ Modèles chargés');
     
-    // Initialiser le scheduler de quêtes
-    const QuestScheduler = require('./services/QuestScheduler');
-    // QuestScheduler.init(); // Décommenté en production
+    // Initialiser le scheduler de quêtes avancé
+    const AdvancedQuestScheduler = require('./services/AdvancedQuestScheduler');
+    AdvancedQuestScheduler.init();
     
     // Test de connexion à la base de données
     await sequelize.authenticate();
     console.log('✅ Connexion à PostgreSQL établie avec succès');
     
-    // Synchronisation des modèles (force: true pour recréer les tables proprement)
-    await sequelize.sync({ force: true });
-    console.log('✅ Base de données synchronisée (tables recréées)');
+    // Synchronisation des modèles (force: false pour préserver les données)
+    await sequelize.sync({ force: false });
+    console.log('✅ Base de données synchronisée');
     
     // Démarrage du serveur
     app.listen(PORT, () => {

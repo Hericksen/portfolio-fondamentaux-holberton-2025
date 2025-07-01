@@ -16,7 +16,7 @@ const Quest = sequelize.define('Quest', {
     type: DataTypes.TEXT
   },
   type: {
-    type: DataTypes.ENUM('daily', 'weekly', 'special', 'achievement'),
+    type: DataTypes.ENUM('daily', 'weekly', 'monthly', 'special', 'achievement'),
     defaultValue: 'daily'
   },
   category: {

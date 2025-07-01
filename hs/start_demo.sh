@@ -63,6 +63,14 @@ echo "⏳ Attente du démarrage du backend..."
 for i in {1..30}; do
     if curl -s http://localhost:3001/health > /dev/null 2>&1; then
         echo "✅ Backend démarré avec succès !"
+        
+        # Créer les comptes de démo automatiquement
+        echo "🎮 Création des comptes de démo..."
+        cd backend
+        timeout 10 node scripts/createDemoAccounts.js 2>/dev/null || echo "Comptes déjà existants"
+        timeout 10 node scripts/createDemoData.js 2>/dev/null || echo "Données déjà existantes"
+        cd ..
+        
         break
     fi
     sleep 1
@@ -97,11 +105,18 @@ echo "📱 Frontend: http://localhost:3000"
 echo "🔧 Backend:  http://localhost:3001"
 echo "🏥 Health:   http://localhost:3001/health"
 echo
-echo "🎮 COMPTE DE DÉMO:"
-echo "   Email:    test@example.com"
-echo "   Password: password123"
+echo "🎮 COMPTES DE DÉMO:"
+echo "┌─────────────────────────────────────┐"
+echo "│ 👤 UTILISATEUR:                     │"
+echo "│    Email:    test@example.com       │"
+echo "│    Password: password123            │"
+echo "├─────────────────────────────────────┤"
+echo "│ 👑 ADMINISTRATEUR:                  │"
+echo "│    Email:    admin@pixelpump.com    │"
+echo "│    Password: admin123               │"
+echo "└─────────────────────────────────────┘"
 echo
-echo "🌟 OU cliquez sur 'Essayer la démo' sur la page de connexion"
+echo "🌟 OU cliquez sur les boutons de démo sur la page de connexion"
 echo
 echo "▶️  Appuyez sur Ctrl+C pour arrêter les services"
 echo

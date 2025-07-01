@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
+import { QuestWidget } from '../components/QuestWidget';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -484,6 +485,9 @@ function Dashboard() {
               {user.avatar.outfit} • {user.avatar.color}
             </div>
           </div>
+
+          {/* Quêtes Avancées Card */}
+          <QuestWidget />
         </div>
 
         {/* Recent Activity */}
