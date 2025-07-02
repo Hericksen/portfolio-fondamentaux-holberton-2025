@@ -1,7 +1,9 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
-import { QuestWidget } from '../components/QuestWidget';
+import { PixelAvatar } from '../components/PixelAvatar';
+import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
+import { advancedQuestApi } from '../services/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -11,6 +13,53 @@ function Dashboard() {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleResetAllQuests = async () => {
+    if (!authUser || authUser.role !== 'admin') {
+      alert('❌ Accès non autorisé - Administrateur requis');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      '⚠️ ATTENTION ! ⚠️\n\n' +
+      'Vous êtes sur le point de SUPPRIMER TOUTES les quêtes de TOUS les utilisateurs.\n' +
+      'Cette action est IRRÉVERSIBLE !\n\n' +
+      'Voulez-vous vraiment continuer ?'
+    );
+
+    if (!confirmed) return;
+
+    const doubleConfirm = window.confirm(
+      '🔥 DERNIÈRE CONFIRMATION 🔥\n\n' +
+      'Êtes-vous ABSOLUMENT SÛR(E) de vouloir réinitialiser toutes les quêtes ?\n' +
+      'Toutes les progressions en cours seront perdues !'
+    );
+
+    if (!doubleConfirm) return;
+
+    try {
+      console.log('🔄 Réinitialisation des quêtes en cours...');
+      const result = await advancedQuestApi.resetAllUserQuests();
+      
+      if (result.success) {
+        alert(
+          '✅ RÉINITIALISATION RÉUSSIE !\n\n' +
+          `• ${result.data.deleted_quests} quêtes supprimées\n` +
+          `• ${result.data.deleted_cycles} cycles supprimés\n` +
+          `• Effectué par: ${result.data.reset_by}\n` +
+          `• À: ${new Date(result.data.reset_at).toLocaleString('fr-FR')}`
+        );
+        
+        // Rafraîchir la page pour voir les changements
+        window.location.reload();
+      } else {
+        alert('❌ Erreur: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation:', error);
+      alert('❌ Erreur lors de la réinitialisation des quêtes: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+    }
   };
 
   if (loading) {
@@ -103,7 +152,7 @@ function Dashboard() {
     );
   }
 
-  const { user, goals, weeklyStats, nextLevel, recentActivity } = dashboardData;
+  const { user } = dashboardData;
 
   return (
     <div style={{
@@ -130,75 +179,80 @@ function Dashboard() {
           padding: '15px 20px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '15px'
         }}>
           
           {/* Logo */}
           <div style={{
-            fontSize: '2.5rem',
+            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
             fontWeight: 'bold',
             background: 'linear-gradient(45deg, #ff006e, #06ffa5)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            textShadow: '0 0 30px rgba(255, 0, 110, 0.3)'
+            textShadow: '0 0 30px rgba(255, 0, 110, 0.3)',
+            minWidth: 'fit-content'
           }}>
             ⚡ PixelPump
           </div>
           
           {/* Navigation */}
-          <nav style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-            <Link to="/dashboard" style={{ 
-              color: '#ff006e', 
-              textDecoration: 'none', 
-              fontWeight: 'bold',
-              padding: '10px 20px',
-              borderRadius: '25px',
-              background: 'rgba(255, 0, 110, 0.1)',
-              border: '2px solid #ff006e',
-              transition: 'all 0.3s ease',
-              fontSize: '0.9rem',
-              textTransform: 'uppercase'
-            }}>
-              🏠 Dashboard
-            </Link>
-            <Link to="/quests" style={{ 
-              color: '#8338ec', 
-              textDecoration: 'none', 
-              fontWeight: 'bold',
-              padding: '10px 20px',
-              borderRadius: '25px',
-              transition: 'all 0.3s ease',
-              fontSize: '0.9rem',
-              textTransform: 'uppercase'
-            }}>
-              ⚔️ Quêtes
-            </Link>
-            <Link to="/profile" style={{ 
-              color: '#06ffa5', 
-              textDecoration: 'none', 
-              fontWeight: 'bold',
-              padding: '10px 20px',
-              borderRadius: '25px',
-              transition: 'all 0.3s ease',
-              fontSize: '0.9rem',
-              textTransform: 'uppercase'
-            }}>
-              👤 Profil
-            </Link>
+          <nav style={{ 
+            display: 'flex', 
+            gap: 'clamp(8px, 2vw, 15px)', 
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
             {authUser?.role === 'admin' && (
-              <Link to="/admin-dashboard" style={{ 
-                color: 'gold', 
-                textDecoration: 'none', 
-                fontWeight: 'bold',
-                padding: '10px 20px',
-                borderRadius: '25px',
-                border: '2px solid gold',
-                transition: 'all 0.3s ease',
-                fontSize: '0.9rem',
-                textTransform: 'uppercase'
-              }}>
-                👑 Admin
-              </Link>
+              <>
+                <Link to="/admin-dashboard" style={{ 
+                  color: 'gold', 
+                  textDecoration: 'none', 
+                  fontWeight: 'bold',
+                  padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
+                  borderRadius: '25px',
+                  border: '2px solid gold',
+                  transition: 'all 0.3s ease',
+                  fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap'
+                }}>
+                  👑 Admin
+                </Link>
+                <button
+                  onClick={handleResetAllQuests}
+                  style={{
+                    background: 'transparent',
+                    border: '2px solid #ff6b6b',
+                    color: '#ff6b6b',
+                    padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
+                    borderRadius: '25px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    transition: 'all 0.3s ease',
+                    fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseOver={(e) => {
+                    (e.target as HTMLButtonElement).style.background = '#ff6b6b';
+                    (e.target as HTMLButtonElement).style.color = 'white';
+                    (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                    (e.target as HTMLButtonElement).style.boxShadow = '0 5px 15px rgba(255, 107, 107, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    (e.target as HTMLButtonElement).style.background = 'transparent';
+                    (e.target as HTMLButtonElement).style.color = '#ff6b6b';
+                    (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+                    (e.target as HTMLButtonElement).style.boxShadow = 'none';
+                  }}
+                  title="⚠️ DANGER: Réinitialiser toutes les quêtes de tous les utilisateurs"
+                >
+                  🔄 Reset Quêtes
+                </button>
+              </>
             )}
             <button
               onClick={handleLogout}
@@ -206,13 +260,14 @@ function Dashboard() {
                 background: 'transparent',
                 border: '2px solid #ff006e',
                 color: '#ff006e',
-                padding: '10px 20px',
+                padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
                 borderRadius: '25px',
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 transition: 'all 0.3s ease',
-                fontSize: '0.9rem',
-                textTransform: 'uppercase'
+                fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap'
               }}
               onMouseOver={(e) => {
                 (e.target as HTMLButtonElement).style.background = '#ff006e';
@@ -234,367 +289,353 @@ function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px 20px' }}>
+      <main style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        padding: 'clamp(20px, 5vw, 30px) clamp(15px, 4vw, 20px)' 
+      }}>
         
-        {/* Hero Section */}
+        {/* Hero Section - Profil Utilisateur Unifié */}
         <section style={{
-          background: 'rgba(26, 0, 51, 0.6)',
+          background: 'linear-gradient(135deg, rgba(26, 0, 51, 0.8) 0%, rgba(45, 27, 105, 0.6) 100%)',
           borderRadius: '20px',
-          padding: '40px',
+          padding: 'clamp(25px, 5vw, 40px)',
           marginBottom: '30px',
-          textAlign: 'center',
           border: '2px solid #ff006e',
-          boxShadow: '0 0 30px rgba(255, 0, 110, 0.2)'
+          boxShadow: '0 0 30px rgba(255, 0, 110, 0.2)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <h1 style={{
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #ff006e 0%, #8338ec 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            marginBottom: '15px',
-            textShadow: '0 0 30px rgba(255, 0, 110, 0.3)'
-          }}>
-            Bienvenue, {user.username}! 🎮
-          </h1>
-          <p style={{ 
-            color: '#b8b8b8', 
-            fontSize: '1.3rem',
-            marginBottom: '20px'
-          }}>
-            Votre aventure fitness continue...
-          </p>
           
-          {/* Quick Stats */}
+          {/* Background Effects */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            background: 'radial-gradient(circle at 20% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(6, 255, 165, 0.1) 0%, transparent 50%)',
+            zIndex: -1
+          }}></div>
+          
+          {/* Header du Profil */}
           <div style={{ 
             display: 'flex', 
-            justifyContent: 'center', 
-            gap: '40px',
-            marginTop: '30px',
-            flexWrap: 'wrap'
+            alignItems: 'center', 
+            gap: 'clamp(20px, 4vw, 30px)',
+            marginBottom: 'clamp(25px, 5vw, 40px)',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 'bold', 
+            
+            {/* Avatar */}
+            <div style={{
+              width: 'clamp(80px, 15vw, 120px)',
+              height: 'clamp(80px, 15vw, 120px)',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #ff006e, #8338ec, #06ffa5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 'clamp(2rem, 4vw, 3rem)',
+              boxShadow: '0 0 30px rgba(255, 0, 110, 0.5)',
+              border: '4px solid white',
+              flexShrink: 0
+            }}>
+              <PixelAvatar avatarData={user.avatar} size="large" />
+            </div>
+            
+            {/* Informations Utilisateur */}
+            <div style={{ 
+              textAlign: 'center', 
+              flex: 1, 
+              minWidth: '250px',
+              maxWidth: '100%'
+            }}>
+              <h1 style={{
+                fontSize: 'clamp(1.8rem, 5vw, 3rem)',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #ff006e 0%, #8338ec 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '10px',
+                textShadow: '0 0 30px rgba(255, 0, 110, 0.3)',
+                wordBreak: 'break-word'
+              }}>
+                {user.username}
+              </h1>
+              <p style={{ 
+                color: '#06ffa5', 
+                fontSize: 'clamp(1rem, 2.5vw, 1.2rem)',
+                marginBottom: '10px',
+                fontWeight: 'bold'
+              }}>
+                🎮 Aventurier Fitness Niveau {user.level}
+              </p>
+              <p style={{ 
+                color: '#b8b8b8', 
+                fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+                fontStyle: 'italic'
+              }}>
+                Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR')}
+              </p>
+            </div>
+          </div>
+          
+          {/* Statistiques Principales */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 'clamp(15px, 3vw, 20px)',
+            marginBottom: '30px'
+          }}>
+            
+            {/* Niveau et Progression */}
+            <div style={{
+              background: 'rgba(255, 0, 110, 0.1)',
+              borderRadius: '15px',
+              padding: 'clamp(15px, 4vw, 25px)',
+              textAlign: 'center',
+              border: '2px solid #ff006e'
+            }}>
+              <div style={{
+                fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+                fontWeight: 'bold',
                 color: '#ff006e',
-                textShadow: '0 0 15px rgba(255, 0, 110, 0.5)'
+                marginBottom: '10px'
               }}>
                 Niv. {user.level}
               </div>
-              <div style={{ color: '#8338ec', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                Niveau
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
               <div style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 'bold', 
-                color: '#06ffa5',
-                textShadow: '0 0 15px rgba(6, 255, 165, 0.5)'
+                color: '#b8b8b8', 
+                marginBottom: '15px',
+                fontSize: 'clamp(0.8rem, 2vw, 1rem)'
               }}>
-                {user.xp}
-              </div>
-              <div style={{ color: '#8338ec', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                XP Total
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 'bold', 
-                color: '#8338ec',
-                textShadow: '0 0 15px rgba(131, 56, 236, 0.5)'
-              }}>
-                {user.streak}
-              </div>
-              <div style={{ color: '#8338ec', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                Série
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Cards Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '25px',
-          marginBottom: '30px'
-        }}>
-          
-          {/* Progress Card */}
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            borderRadius: '15px',
-            padding: '25px',
-            border: '2px solid #8338ec',
-            boxShadow: '0 0 20px rgba(131, 56, 236, 0.2)'
-          }}>
-            <h3 style={{
-              color: '#8338ec',
-              marginBottom: '20px',
-              fontSize: '1.4rem',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              📊 Progression
-            </h3>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                marginBottom: '8px' 
-              }}>
-                <span>Vers niveau {nextLevel.currentLevel + 1}</span>
-                <span>{user.xp}/{nextLevel.xpNeeded + user.xp}</span>
+                Niveau Actuel
               </div>
               <div style={{
-                background: 'rgba(131, 56, 236, 0.2)',
-                borderRadius: '10px',
-                height: '12px',
+                width: '100%',
+                height: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '4px',
                 overflow: 'hidden'
               }}>
                 <div style={{
-                  background: 'linear-gradient(90deg, #8338ec, #ff006e)',
+                  width: `${(user.xp % 1000) / 10}%`,
                   height: '100%',
-                  width: `${(user.xp / (nextLevel.xpNeeded + user.xp)) * 100}%`,
+                  background: 'linear-gradient(90deg, #ff006e, #8338ec)',
                   transition: 'width 0.5s ease'
                 }}></div>
               </div>
-            </div>
-
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between',
-              fontSize: '0.9rem',
-              color: '#b8b8b8'
-            }}>
-              <span>XP restant: {nextLevel.xpNeeded}</span>
-              <span>Progres: {Math.round((user.xp / (nextLevel.xpNeeded + user.xp)) * 100)}%</span>
-            </div>
-          </div>
-
-          {/* Goals Card */}
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            borderRadius: '15px',
-            padding: '25px',
-            border: '2px solid #06ffa5',
-            boxShadow: '0 0 20px rgba(6, 255, 165, 0.2)'
-          }}>
-            <h3 style={{
-              color: '#06ffa5',
-              marginBottom: '20px',
-              fontSize: '1.4rem',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              🎯 Objectifs
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Quêtes quotidiennes</span>
-                  <span>{goals.dailyQuests.completed}/{goals.dailyQuests.target}</span>
-                </div>
-                <div style={{
-                  background: 'rgba(6, 255, 165, 0.2)',
-                  borderRadius: '8px',
-                  height: '8px',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    background: '#06ffa5',
-                    height: '100%',
-                    width: `${(goals.dailyQuests.completed / goals.dailyQuests.target) * 100}%`,
-                    transition: 'width 0.5s ease'
-                  }}></div>
-                </div>
-              </div>
-              
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>XP hebdomadaire</span>
-                  <span>{goals.weeklyXp.earned}/{goals.weeklyXp.target}</span>
-                </div>
-                <div style={{
-                  background: 'rgba(6, 255, 165, 0.2)',
-                  borderRadius: '8px',
-                  height: '8px',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    background: '#06ffa5',
-                    height: '100%',
-                    width: `${(goals.weeklyXp.earned / goals.weeklyXp.target) * 100}%`,
-                    transition: 'width 0.5s ease'
-                  }}></div>
-                </div>
+              <div style={{ 
+                color: '#8338ec', 
+                fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)', 
+                marginTop: '8px' 
+              }}>
+                {user.xp % 1000}/1000 XP
               </div>
             </div>
-          </div>
-
-          {/* Avatar Card */}
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            borderRadius: '15px',
-            padding: '25px',
-            border: '2px solid #ff006e',
-            boxShadow: '0 0 20px rgba(255, 0, 110, 0.2)',
-            textAlign: 'center'
-          }}>
-            <h3 style={{
-              color: '#ff006e',
-              marginBottom: '20px',
-              fontSize: '1.4rem',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px'
-            }}>
-              🤖 Avatar
-            </h3>
             
+            {/* XP Total */}
             <div style={{
-              width: '100px',
-              height: '100px',
-              background: user.avatar.background === 'gym' ? 
-                'linear-gradient(135deg, #ff006e, #8338ec)' : 
-                'linear-gradient(135deg, #06ffa5, #8338ec)',
-              borderRadius: '50%',
-              margin: '0 auto 15px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '3rem',
-              border: '3px solid white',
-              boxShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+              background: 'rgba(6, 255, 165, 0.1)',
+              borderRadius: '15px',
+              padding: 'clamp(15px, 4vw, 25px)',
+              textAlign: 'center',
+              border: '2px solid #06ffa5'
             }}>
-              🏃‍♂️
+              <div style={{
+                fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+                fontWeight: 'bold',
+                color: '#06ffa5',
+                marginBottom: '10px'
+              }}>
+                {user.xp.toLocaleString()}
+              </div>
+              <div style={{ 
+                color: '#b8b8b8', 
+                marginBottom: '10px',
+                fontSize: 'clamp(0.8rem, 2vw, 1rem)'
+              }}>
+                Points d'Expérience
+              </div>
+              <div style={{ 
+                color: '#06ffa5', 
+                fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
+              }}>
+                ⭐ Total Gagné
+              </div>
             </div>
             
-            <div style={{ color: '#b8b8b8', fontSize: '0.9rem' }}>
-              {user.avatar.outfit} • {user.avatar.color}
+            {/* Série Actuelle */}
+            <div style={{
+              background: 'rgba(131, 56, 236, 0.1)',
+              borderRadius: '15px',
+              padding: 'clamp(15px, 4vw, 25px)',
+              textAlign: 'center',
+              border: '2px solid #8338ec'
+            }}>
+              <div style={{
+                fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+                fontWeight: 'bold',
+                color: '#8338ec',
+                marginBottom: '10px'
+              }}>
+                {user.streak}
+              </div>
+              <div style={{ 
+                color: '#b8b8b8', 
+                marginBottom: '10px',
+                fontSize: 'clamp(0.8rem, 2vw, 1rem)'
+              }}>
+                Jours Consécutifs
+              </div>
+              <div style={{ 
+                color: '#8338ec', 
+                fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
+              }}>
+                🔥 Série Active
+              </div>
+            </div>
+            
+            {/* Quêtes Complétées */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(131, 56, 236, 0.1))',
+              borderRadius: '15px',
+              padding: 'clamp(15px, 4vw, 25px)',
+              textAlign: 'center',
+              border: '2px solid #ff006e'
+            }}>
+              <div style={{
+                fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #ff006e, #8338ec)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '10px'
+              }}>
+                {user.stats?.total_quests_completed || user.total_quests_completed || 0}
+              </div>
+              <div style={{ 
+                color: '#b8b8b8', 
+                marginBottom: '10px',
+                fontSize: 'clamp(0.8rem, 2vw, 1rem)'
+              }}>
+                Quêtes Terminées
+              </div>
+              <div style={{ 
+                color: '#ff006e', 
+                fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
+              }}>
+                ⚔️ Succès
+              </div>
             </div>
           </div>
-
-          {/* Quêtes Avancées Card */}
-          <QuestWidget />
-        </div>
-
-        {/* Recent Activity */}
-        <section style={{
-          background: 'rgba(26, 0, 51, 0.6)',
-          borderRadius: '15px',
-          padding: '25px',
-          border: '2px solid #8338ec',
-          boxShadow: '0 0 20px rgba(131, 56, 236, 0.2)'
-        }}>
-          <h3 style={{
-            color: '#8338ec',
-            marginBottom: '20px',
-            fontSize: '1.4rem',
-            fontWeight: 'bold',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
+        </section>
+        
+        {/* Section Quêtes Utilisateur */}
+        <section style={{ marginBottom: '30px' }}>
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.6)',
+            border: '2px solid #ff006e',
+            borderRadius: '20px',
+            padding: 'clamp(20px, 4vw, 30px)',
+            backdropFilter: 'blur(15px)',
+            boxShadow: '0 8px 32px rgba(255, 0, 110, 0.2)'
           }}>
-            📈 Activité récente
-          </h3>
-          
-          {recentActivity.quests.length > 0 || recentActivity.achievements.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {recentActivity.quests.map((quest: any, index: number) => (
-                <div key={index} style={{
-                  background: 'rgba(6, 255, 165, 0.1)',
-                  padding: '15px',
-                  borderRadius: '10px',
-                  border: '1px solid #06ffa5'
-                }}>
-                  <div style={{ fontWeight: 'bold', color: '#06ffa5' }}>
-                    ✅ {quest.title}
-                  </div>
-                  <div style={{ color: '#b8b8b8', fontSize: '0.9rem' }}>
-                    +{quest.xp_reward} XP
-                  </div>
-                </div>
-              ))}
-              
-              {recentActivity.achievements.map((achievement: any, index: number) => (
-                <div key={index} style={{
-                  background: 'rgba(255, 0, 110, 0.1)',
-                  padding: '15px',
-                  borderRadius: '10px',
-                  border: '1px solid #ff006e'
-                }}>
-                  <div style={{ fontWeight: 'bold', color: '#ff006e' }}>
-                    🏆 {achievement.title}
-                  </div>
-                  <div style={{ color: '#b8b8b8', fontSize: '0.9rem' }}>
-                    {achievement.description}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ 
-              textAlign: 'center', 
-              color: '#b8b8b8', 
-              padding: '40px',
-              fontSize: '1.1rem'
+            <h2 style={{
+              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+              fontWeight: 'bold',
+              background: 'linear-gradient(45deg, #ff006e, #8338ec)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textAlign: 'center',
+              marginBottom: '20px',
+              textShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
             }}>
-              🌟 Commencez votre aventure ! Visitez la section Quêtes pour débuter.
-            </div>
-          )}
+              🎯 Mes Quêtes Actives
+            </h2>
+            <AdvancedQuestsDashboard />
+          </div>
         </section>
-
-        {/* Quick Actions */}
-        <section style={{
-          marginTop: '30px',
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <Link to="/quests" style={{
-            background: 'linear-gradient(135deg, #06ffa5, #8338ec)',
-            color: 'white',
-            textDecoration: 'none',
-            padding: '15px 30px',
-            borderRadius: '25px',
-            fontWeight: 'bold',
-            fontSize: '1.1rem',
-            textTransform: 'uppercase',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 5px 15px rgba(6, 255, 165, 0.3)'
-          }}>
-            ⚔️ Voir les Quêtes
-          </Link>
-          
-          <Link to="/profile" style={{
-            background: 'linear-gradient(135deg, #ff006e, #8338ec)',
-            color: 'white',
-            textDecoration: 'none',
-            padding: '15px 30px',
-            borderRadius: '25px',
-            fontWeight: 'bold',
-            fontSize: '1.1rem',
-            textTransform: 'uppercase',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 5px 15px rgba(255, 0, 110, 0.3)'
-          }}>
-            👤 Mon Profil
-          </Link>
-        </section>
+        
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        background: 'rgba(26, 0, 51, 0.95)',
+        color: '#b8b8b8',
+        padding: 'clamp(15px, 3vw, 20px)',
+        textAlign: 'center',
+        borderTop: '2px solid #ff006e',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          <div style={{ fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' }}>
+            &copy; {new Date().getFullYear()} PixelPump. Tous droits réservés.
+          </div>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 'clamp(10px, 2vw, 15px)',
+            flexWrap: 'wrap'
+          }}>
+            <Link to="/terms" style={{ 
+              color: '#06ffa5', 
+              textDecoration: 'none', 
+              fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' 
+            }}>
+              Conditions d'utilisation
+            </Link>
+            <Link to="/privacy" style={{ 
+              color: '#06ffa5', 
+              textDecoration: 'none', 
+              fontSize: 'clamp(0.7rem, 2vw, 0.9rem)' 
+            }}>
+              Politique de confidentialité
+            </Link>
+          </div>
+        </div>
+        
+        {/* Background Circles */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: -1,
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-50%',
+            left: '-50%',
+            width: '200%',
+            height: '200%',
+            background: 'radial-gradient(circle, rgba(255, 0, 110, 0.1) 0%, rgba(255, 0, 110, 0) 70%)',
+            transform: 'translate(-50%, -50%)',
+            zIndex: -1
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            right: '-50%',
+            width: '200%',
+            height: '200%',
+            background: 'radial-gradient(circle, rgba(6, 255, 165, 0.1) 0%, rgba(6, 255, 165, 0) 70%)',
+            transform: 'translate(50%, -50%)',
+            zIndex: -1
+          }}></div>
+        </div>
+      </footer>
     </div>
   );
 }

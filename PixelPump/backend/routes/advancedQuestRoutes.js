@@ -26,6 +26,12 @@ router.get('/cycles', AdvancedQuestController.getActiveCycles);
 // Forcer l'assignation de quêtes (admin uniquement)
 router.post('/admin/force-assign', adminMiddleware, AdvancedQuestController.forceAssignQuests);
 
+// Réinitialiser toutes les quêtes de tous les utilisateurs (admin uniquement)
+router.post('/admin/reset-all-quests', adminMiddleware, AdvancedQuestController.resetAllUserQuests);
+
+// Statistiques admin des quêtes (admin uniquement)
+router.get('/admin/stats-detailed', adminMiddleware, AdvancedQuestController.getAdminStats);
+
 // Statistiques détaillées des quêtes (admin)
 router.get('/admin/stats', adminMiddleware, async (req, res) => {
   try {

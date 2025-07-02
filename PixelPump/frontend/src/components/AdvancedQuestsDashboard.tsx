@@ -47,10 +47,10 @@ export const AdvancedQuestsDashboard: React.FC = () => {
   };
 
   const tabLabels = {
-    all: 'Toutes',
-    daily: 'Quotidiennes',
-    weekly: 'Hebdomadaires',
-    monthly: 'Mensuelles'
+    all: 'Toutes mes missions',
+    daily: 'Aujourd\'hui',
+    weekly: 'Cette semaine',
+    monthly: 'Ce mois'
   };
 
   const tabIcons = {
@@ -61,16 +61,16 @@ export const AdvancedQuestsDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2 pixel-title neon-text">
-            <Sword className="w-6 h-6" style={{ color: '#ff006e' }} />
-            Quêtes Avancées
+            <Target className="w-6 h-6" style={{ color: '#ff006e' }} />
+            Mes Missions
           </h1>
           <p className="font-mono mt-1" style={{ color: '#9d4edd' }}>
-            Système de quêtes avec cycles temporels
+            Progresse à ton rythme et gagne de l'XP !
           </p>
         </div>
         
@@ -266,9 +266,49 @@ export const AdvancedQuestsDashboard: React.FC = () => {
           )}
 
           {!loading && getQuestsForTab().length === 0 && (
-            <div className="text-center py-8" style={{ color: '#9d4edd' }}>
-              <Sword className="w-12 h-12 mx-auto mb-2 opacity-50" style={{ color: '#ff006e' }} />
-              <p className="font-mono">Aucune quête disponible dans cette catégorie</p>
+            <div className="text-center py-12" style={{ 
+              background: 'rgba(131, 56, 236, 0.1)',
+              borderRadius: '15px',
+              border: '2px dashed #8338ec',
+              padding: '30px'
+            }}>
+              <div style={{ 
+                fontSize: '4rem', 
+                marginBottom: '15px',
+                filter: 'drop-shadow(0 0 10px rgba(255, 0, 110, 0.5))'
+              }}>
+                ⚔️
+              </div>
+              <h3 style={{ 
+                color: '#ff006e', 
+                fontSize: '1.5rem', 
+                fontWeight: 'bold',
+                marginBottom: '10px',
+                textShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
+              }}>
+                Zone de Combat Vide
+              </h3>
+              <p className="font-mono" style={{ 
+                color: '#9d4edd',
+                fontSize: '1rem',
+                marginBottom: '15px',
+                lineHeight: '1.6'
+              }}>
+                Tes missions se préparent dans l'ombre...<br/>
+                Bientôt de nouveaux défis t'attendront !
+              </p>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '10px',
+                marginTop: '20px',
+                fontSize: '0.9rem',
+                color: '#06ffa5'
+              }}>
+                <span>🔄</span>
+                <span className="font-mono">Actualisé il y a quelques instants</span>
+              </div>
             </div>
           )}
         </div>

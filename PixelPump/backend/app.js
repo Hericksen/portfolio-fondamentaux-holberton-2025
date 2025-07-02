@@ -25,7 +25,8 @@ app.get('/', (req, res) => {
       users: '/api/users (GET /, GET /:id, POST /, PUT /:id, DELETE /:id)',
       quests: '/api/quests (GET /, POST /, GET /user/:userId, PUT /:questId/complete)',
       achievements: '/api/achievements (GET /, POST /, GET /user/:userId, PUT /:achievementId/unlock)',
-      database: '/api/database (🔒 Admin only - GET /users, /quests, /achievements, /stats)'
+      database: '/api/database (🔒 Admin only - GET /users, /quests, /achievements, /stats)',
+      admin: '/api/admin (🔒 Admin only - User/Quest management, system stats)'
     }
   });
 });
@@ -48,6 +49,7 @@ try {
   const achievementRoutes = require('./routes/achievementRoutes');
   const databaseRoutes = require('./routes/databaseRoutes');
   const advancedQuestRoutes = require('./routes/advancedQuestRoutes');
+  const adminRoutes = require('./routes/adminRoutes');
 
   // Utilisation des routes
   app.use('/api/auth', authRoutes);
@@ -56,6 +58,7 @@ try {
   app.use('/api/achievements', achievementRoutes);
   app.use('/api/database', databaseRoutes);
   app.use('/api/advanced-quests', advancedQuestRoutes);
+  app.use('/api/admin', adminRoutes);
   
   console.log('✅ Routes API configurées');
 } catch (error) {

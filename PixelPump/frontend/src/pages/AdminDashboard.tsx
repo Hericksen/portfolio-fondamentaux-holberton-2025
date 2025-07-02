@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 interface User {
   id: string;
@@ -14,6 +15,11 @@ interface User {
   total_quests_completed: number;
   created_at: string;
   last_login: string;
+}
+
+interface BannedUser extends User {
+  bannedAt: string;
+  bannedBy: string;
 }
 
 interface Quest {
@@ -50,6 +56,7 @@ const AdminDashboard: React.FC = () => {
   
   // States pour les données
   const [users, setUsers] = useState<User[]>([]);
+  const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<DatabaseStats | null>(null);
@@ -58,6 +65,16 @@ const AdminDashboard: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState('');
   const [notification, setNotification] = useState('');
+
+  // States pour les modales de confirmation
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [deleteModalData, setDeleteModalData] = useState({
+    title: '',
+    message: '',
+    userId: '',
+    userCount: 0
+  });
 
   // Vérifier si l'utilisateur est admin
   useEffect(() => {
@@ -73,6 +90,7 @@ const AdminDashboard: React.FC = () => {
     try {
       await Promise.all([
         fetchUsers(),
+        fetchBannedUsers(),
         fetchQuests(),
         fetchAchievements(),
         fetchStats()
@@ -90,6 +108,18 @@ const AdminDashboard: React.FC = () => {
       setUsers(response.data.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
+    }
+  };
+
+  const fetchBannedUsers = async () => {
+    try {
+      // Pour l'instant, on simule une liste de bannis en localStorage
+      // Dans un vrai projet, cela serait stocké en base de données
+      const bannedList: BannedUser[] = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+      setBannedUsers(bannedList);
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs bannis:', error);
+      setBannedUsers([]);
     }
   };
 
@@ -136,6 +166,18 @@ const AdminDashboard: React.FC = () => {
   const handleBulkAction = async () => {
     if (!bulkAction || selectedUsers.length === 0) return;
 
+    // Si c'est une suppression, on affiche la modal de confirmation
+    if (bulkAction === 'delete') {
+      setDeleteModalData({
+        title: 'Bannir des pumpers',
+        message: `Attention ! Vous êtes sur le point de bannir ${selectedUsers.length} pumper(s) de PixelPump ! Leurs quêtes seront perdues à jamais. Cette action est irréversible !`,
+        userId: '',
+        userCount: selectedUsers.length
+      });
+      setShowBulkDeleteModal(true);
+      return;
+    }
+
     try {
       setLoading(true);
       const promises = selectedUsers.map(userId => {
@@ -158,6 +200,70 @@ const AdminDashboard: React.FC = () => {
       setNotification('❌ Erreur lors de l\'exécution de l\'action');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    try {
+      setLoading(true);
+      
+      // Récupérer les données de l'utilisateur avant suppression
+      const userToDelete = users.find(u => u.id === deleteModalData.userId);
+      if (userToDelete) {
+        // Ajouter à la liste des bannis
+        const bannedList: BannedUser[] = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+        const bannedUser: BannedUser = {
+          ...userToDelete,
+          bannedAt: new Date().toISOString(),
+          bannedBy: user?.username || 'Admin'
+        };
+        bannedList.push(bannedUser);
+        localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
+        setBannedUsers(bannedList);
+      }
+      
+      await api.delete(`/users/${deleteModalData.userId}`);
+      setNotification('✅ Pumper supprimé de l\'univers PixelPump avec succès');
+      fetchUsers();
+    } catch (error) {
+      setNotification('❌ Erreur lors de la suppression de l\'utilisateur');
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const confirmBulkDeleteUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Récupérer les données des utilisateurs avant suppression
+      const usersToDelete = users.filter(u => selectedUsers.includes(u.id));
+      const bannedList: BannedUser[] = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+      
+      usersToDelete.forEach(userToDelete => {
+        const bannedUser: BannedUser = {
+          ...userToDelete,
+          bannedAt: new Date().toISOString(),
+          bannedBy: user?.username || 'Admin'
+        };
+        bannedList.push(bannedUser);
+      });
+      
+      localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
+      setBannedUsers(bannedList);
+      
+      const promises = selectedUsers.map(userId => api.delete(`/users/${userId}`));
+      await Promise.all(promises);
+      setNotification(`🎮 ${selectedUsers.length} pumper(s) banni(s) de l'univers PixelPump avec succès !`);
+      setSelectedUsers([]);
+      setBulkAction('');
+      fetchUsers();
+    } catch (error) {
+      setNotification('❌ Erreur lors du bannissement des pumpers');
+    } finally {
+      setLoading(false);
+      setShowBulkDeleteModal(false);
     }
   };
 
@@ -282,6 +388,7 @@ const AdminDashboard: React.FC = () => {
           {[
             { id: 'dashboard', label: '📊 Vue d\'ensemble', icon: '📊' },
             { id: 'users', label: '👥 Utilisateurs', icon: '👥' },
+            { id: 'banned', label: '🚫 Bannis', icon: '🚫' },
             { id: 'quests', label: '⚔️ Quêtes', icon: '⚔️' },
             { id: 'achievements', label: '🏆 Succès', icon: '🏆' }
           ].map(tab => (
@@ -425,6 +532,7 @@ const AdminDashboard: React.FC = () => {
                   <option value="">Choisir une action</option>
                   <option value="addXp">Ajouter 100 XP</option>
                   <option value="resetProgress">Réinitialiser progression</option>
+                  <option value="delete">Bannir les pumpers</option>
                 </select>
                 
                 <button
@@ -466,7 +574,8 @@ const AdminDashboard: React.FC = () => {
                           type="checkbox"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedUsers(users.map(u => u.id));
+                              const nonAdminUsers = users.filter(u => u.role !== 'admin').map(u => u.id);
+                              setSelectedUsers(nonAdminUsers);
                             } else {
                               setSelectedUsers([]);
                             }
@@ -480,6 +589,7 @@ const AdminDashboard: React.FC = () => {
                       <th style={{ padding: '10px', textAlign: 'left', color: '#ff006e' }}>Série</th>
                       <th style={{ padding: '10px', textAlign: 'left', color: '#ff006e' }}>Quêtes</th>
                       <th style={{ padding: '10px', textAlign: 'left', color: '#ff006e' }}>Inscrit</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff006e' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -488,6 +598,7 @@ const AdminDashboard: React.FC = () => {
                         <td style={{ padding: '10px' }}>
                           <input
                             type="checkbox"
+                            disabled={user.role === 'admin'}
                             checked={selectedUsers.includes(user.id)}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -521,12 +632,81 @@ const AdminDashboard: React.FC = () => {
                         <td style={{ padding: '10px', color: '#b8b8b8', fontSize: '0.8rem' }}>
                           {new Date(user.created_at).toLocaleDateString()}
                         </td>
+                        <td style={{ padding: '10px' }}>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            {user.role !== 'admin' ? (
+                              <button
+                                onClick={() => {
+                                  setDeleteModalData({
+                                    title: 'Supprimer le pumper',
+                                    message: `Êtes-vous sûr de vouloir supprimer le pumper "${user.username}" de l'univers PixelPump ? Cette action est irréversible et toutes ses quêtes seront perdues !`,
+                                    userId: user.id,
+                                    userCount: 1
+                                  });
+                                  setShowDeleteModal(true);
+                                }}
+                                style={{
+                                  background: 'rgba(255, 0, 110, 0.2)',
+                                  border: 'none',
+                                  color: '#ff006e',
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.9rem',
+                                  transition: 'all 0.3s ease'
+                                }}
+                              >
+                                Supprimer
+                              </button>
+                            ) : (
+                              <span style={{
+                                background: 'rgba(255, 215, 0, 0.2)',
+                                border: '1px solid gold',
+                                color: 'gold',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.8rem',
+                                fontWeight: 'bold'
+                              }}>
+                                👑 Protégé
+                              </span>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
             </div>
+
+            {/* Confirmation Modals */}
+            {showDeleteModal && (
+              <ConfirmModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDeleteUser}
+                title={deleteModalData.title}
+                message={deleteModalData.message}
+                confirmText="Supprimer"
+                cancelText="Annuler"
+                type="danger"
+              />
+            )}
+
+            {showBulkDeleteModal && (
+              <ConfirmModal
+                isOpen={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={confirmBulkDeleteUsers}
+                title={deleteModalData.title}
+                message={deleteModalData.message}
+                confirmText="Bannir"
+                cancelText="Annuler"
+                type="danger"
+              />
+            )}
           </div>
         )}
 
@@ -630,6 +810,103 @@ const AdminDashboard: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'banned' && (
+          <div style={{
+            background: 'rgba(26, 0, 51, 0.6)',
+            borderRadius: '15px',
+            padding: '25px',
+            border: '2px solid #ff1744'
+          }}>
+            <h3 style={{ color: '#ff1744', marginBottom: '20px' }}>🚫 Pumpers bannis</h3>
+            
+            {bannedUsers.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px',
+                color: '#b8b8b8'
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🎉</div>
+                <h4>Aucun pumper banni</h4>
+                <p>L'univers PixelPump est en paix !</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #ff1744' }}>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Pumper banni</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Email</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Niveau atteint</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>XP total</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Quêtes complétées</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Banni le</th>
+                      <th style={{ padding: '10px', textAlign: 'left', color: '#ff1744' }}>Banni par</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bannedUsers.map((bannedUser, index) => (
+                      <tr key={`banned-${index}`} style={{ 
+                        borderBottom: '1px solid rgba(255, 23, 68, 0.2)',
+                        background: 'rgba(255, 23, 68, 0.05)'
+                      }}>
+                        <td style={{ padding: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{
+                              background: '#ff1744',
+                              color: 'white',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold'
+                            }}>
+                              🚫
+                            </span>
+                            <strong style={{ textDecoration: 'line-through', opacity: 0.7 }}>
+                              {bannedUser.username}
+                            </strong>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px', color: '#b8b8b8', opacity: 0.7 }}>
+                          {bannedUser.email}
+                        </td>
+                        <td style={{ padding: '10px', color: '#ff1744', fontWeight: 'bold' }}>
+                          {bannedUser.level}
+                        </td>
+                        <td style={{ padding: '10px', color: '#ff1744' }}>
+                          {bannedUser.xp}
+                        </td>
+                        <td style={{ padding: '10px', color: '#ff1744' }}>
+                          {bannedUser.total_quests_completed}
+                        </td>
+                        <td style={{ padding: '10px', color: '#b8b8b8', fontSize: '0.8rem' }}>
+                          {new Date(bannedUser.bannedAt).toLocaleDateString()}
+                        </td>
+                        <td style={{ padding: '10px', color: '#ff1744', fontWeight: 'bold' }}>
+                          {bannedUser.bannedBy}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
+            {bannedUsers.length > 0 && (
+              <div style={{
+                marginTop: '20px',
+                padding: '15px',
+                background: 'rgba(255, 23, 68, 0.1)',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: '#ff1744', margin: 0 }}>
+                  📊 Total de pumpers bannis : <strong>{bannedUsers.length}</strong>
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

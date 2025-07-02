@@ -3,8 +3,6 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Quests from './pages/Quests';
-import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import AdminDashboard from './pages/AdminDashboard';
 import Database from './pages/Database';
@@ -85,22 +83,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/quests"
-              element={
-                <ProtectedRoute>
-                  <Quests />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
                 </ProtectedRoute>
               }
             />

@@ -310,63 +310,138 @@ const AdvancedQuestController = {
     }
   },
 
+  // === MÉTHODES ADMIN ===
+
+  // Réinitialiser toutes les quêtes de tous les utilisateurs (méthode admin/debug)
+  async resetAllUserQuests(req, res) {
+    try {
+      const userId = req.user.userId;
+      
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Accès non autorisé - Administrateur requis'
+        });
+      }
+
+      console.log(`🔄 Admin ${userId} réinitialise toutes les quêtes utilisateurs`);
+
+      // Supprimer toutes les quêtes utilisateur existantes
+      const deletedQuests = await UserQuest.destroy({
+        where: {}
+      });
+
+      // Supprimer tous les cycles existants
+      const deletedCycles = await QuestCycle.destroy({
+        where: {}
+      });
+
+      console.log(`✅ ${deletedQuests} quêtes supprimées, ${deletedCycles} cycles supprimés`);
+
+      res.json({
+        success: true,
+        message: 'Toutes les quêtes utilisateurs ont été réinitialisées',
+        data: {
+          deleted_quests: deletedQuests,
+          deleted_cycles: deletedCycles,
+          reset_by: req.user.username,
+          reset_at: new Date().toISOString()
+        }
+      });
+
+    } catch (error) {
+      console.error('Erreur resetAllUserQuests:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la réinitialisation des quêtes',
+        error: error.message
+      });
+    }
+  },
+
+  // Obtenir des statistiques admin sur les quêtes
+  async getAdminStats(req, res) {
+    try {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Accès non autorisé - Administrateur requis'
+        });
+      }
+
+      const totalUsers = await User.count();
+      const totalQuests = await Quest.count();
+      const totalUserQuests = await UserQuest.count();
+      const completedQuests = await UserQuest.count({ where: { is_completed: true } });
+      const activeCycles = await QuestCycle.count({ where: { is_active: true } });
+
+      const stats = {
+        total_users: totalUsers,
+        total_quests: totalQuests,
+        total_user_quests: totalUserQuests,
+        completed_quests: completedQuests,
+        active_cycles: activeCycles,
+        completion_rate: totalUserQuests > 0 ? Math.round((completedQuests / totalUserQuests) * 100) : 0
+      };
+
+      res.json({
+        success: true,
+        data: stats
+      });
+
+    } catch (error) {
+      console.error('Erreur getAdminStats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des statistiques',
+        error: error.message
+      });
+    }
+  },
+
   // === MÉTHODES UTILITAIRES ===
 
   async getUserCompletionRate(userId) {
-    const last30Days = moment().subtract(30, 'days').toDate();
-    
-    const totalQuests = await UserQuest.count({
-      where: {
-        user_id: userId,
-        assigned_at: { [Op.gte]: last30Days }
-      }
-    });
+    try {
+      const last30Days = moment().subtract(30, 'days').toDate();
+      
+      const totalQuests = await UserQuest.count({
+        where: {
+          user_id: userId,
+          assigned_at: { [Op.gte]: last30Days }
+        }
+      });
 
-    const completedQuests = await UserQuest.count({
-      where: {
-        user_id: userId,
-        assigned_at: { [Op.gte]: last30Days },
-        is_completed: true
-      }
-    });
+      const completedQuests = await UserQuest.count({
+        where: {
+          user_id: userId,
+          assigned_at: { [Op.gte]: last30Days },
+          is_completed: true
+        }
+      });
 
-    return totalQuests > 0 ? Math.round((completedQuests / totalQuests) * 100) : 0;
+      return totalQuests > 0 ? Math.round((completedQuests / totalQuests) * 100) : 0;
+    } catch (error) {
+      console.error('Erreur getUserCompletionRate:', error);
+      return 0;
+    }
   },
 
   async getUserStreak(userId) {
-    const user = await User.findByPk(userId, { attributes: ['streak'] });
-    return user ? user.streak : 0;
-  },
-
-  async updateUserStreak(userId) {
-    const user = await User.findByPk(userId);
-    const today = moment().startOf('day');
-    const yesterday = moment().subtract(1, 'day').startOf('day');
-
-    // Vérifier s'il y a eu une quête complétée hier
-    const yesterdayQuest = await UserQuest.findOne({
-      where: {
-        user_id: userId,
-        is_completed: true,
-        completed_at: {
-          [Op.between]: [yesterday.toDate(), today.toDate()]
-        }
-      }
-    });
-
-    if (yesterdayQuest) {
-      // Continuer la série
-      await user.increment('streak');
-    } else {
-      // Recommencer la série
-      await user.update({ streak: 1 });
+    try {
+      // Pour simplifier, on récupère le streak depuis la table User
+      const user = await User.findByPk(userId, {
+        attributes: ['streak']
+      });
+      
+      return user ? user.streak : 0;
+    } catch (error) {
+      console.error('Erreur getUserStreak:', error);
+      return 0;
     }
-
-    return user.reload();
   },
 
-  async checkQuestAchievements(userId) {
-    // Logique pour vérifier et débloquer les achievements liés aux quêtes
+  async checkAchievements(userId) {
     // À implémenter selon les besoins spécifiques
     console.log(`🏆 Vérification des achievements pour l'utilisateur ${userId}`);
   }

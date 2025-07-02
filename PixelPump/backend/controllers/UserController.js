@@ -150,6 +150,22 @@ const UserController = {
 
   async remove(req, res) {
     try {
+      // Vérifier les permissions admin
+      if (!req.user.isAdmin && req.user.role !== 'admin') {
+        return res.status(403).json({ 
+          success: false,
+          message: 'Permissions administrateur requises pour supprimer un utilisateur' 
+        });
+      }
+
+      // Vérifier que l'admin ne se supprime pas lui-même
+      if (req.user.userId === req.params.id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vous ne pouvez pas supprimer votre propre compte'
+        });
+      }
+
       const user = await User.findByPk(req.params.id);
       
       if (!user) {

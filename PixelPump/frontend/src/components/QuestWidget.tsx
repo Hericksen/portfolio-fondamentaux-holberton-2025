@@ -66,7 +66,7 @@ export const QuestWidget: React.FC<QuestWidgetProps> = ({ }) => {
               Quêtes Actives
             </h3>
           </div>
-          <Link to="/quests">
+          <Link to="/dashboard">
             <Button 
               variant="outline" 
               size="sm"
@@ -78,7 +78,7 @@ export const QuestWidget: React.FC<QuestWidgetProps> = ({ }) => {
                 fontSize: '0.8rem'
               }}
             >
-              Voir tout
+              Dashboard
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -202,8 +202,8 @@ export const QuestWidget: React.FC<QuestWidgetProps> = ({ }) => {
           </div>
         )}
 
-        {/* Lien vers la page complète */}
-        <Link to="/quests">
+        {/* Lien vers le dashboard complet */}
+        <Link to="/dashboard">
           <Button 
             className="w-full cyberpunk-btn pixel-btn font-pixel"
             style={{
@@ -215,7 +215,7 @@ export const QuestWidget: React.FC<QuestWidgetProps> = ({ }) => {
             }}
           >
             <TrendingUp className="w-4 h-4 mr-2" />
-            Voir toutes les quêtes
+            Accéder au Dashboard
           </Button>
         </Link>
       </div>
