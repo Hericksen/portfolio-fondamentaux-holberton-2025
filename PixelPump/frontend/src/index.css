@@ -30,13 +30,25 @@
   --pixel-bg-card: rgba(26, 0, 51, 0.8); /* Violet transparent */
   --pixel-bg-hover: rgba(255, 0, 110, 0.1); /* Rose transparent */
   
-  /* Dégradé principal cyberpunk */
+  /* Dégradé principal cyberpunk - version smooth */
   --gradient-cyberpunk: linear-gradient(135deg, 
     #ff006e 0%,    /* Rose néon */
-    #8338ec 25%,   /* Violet */
-    #3a86ff 50%,   /* Bleu électrique */
-    #06ffa5 75%,   /* Vert néon */
-    #ffbe0b 100%   /* Jaune */
+    #8338ec 50%,   /* Violet */
+    #3a86ff 100%   /* Bleu électrique */
+  );
+  
+  /* Dégradé alternatif plus subtil pour les cartes */
+  --gradient-card: linear-gradient(135deg, 
+    rgba(255, 0, 110, 0.15) 0%, 
+    rgba(131, 56, 236, 0.10) 50%, 
+    rgba(58, 134, 255, 0.05) 100%
+  );
+  
+  /* Dégradé subtil pour fond de cartes */
+  --gradient-card-bg: linear-gradient(135deg, 
+    rgba(26, 0, 51, 0.9) 0%, 
+    rgba(45, 27, 105, 0.8) 50%, 
+    rgba(26, 0, 51, 0.9) 100%
   );
   
   /* Dégradé fond */
@@ -157,11 +169,11 @@ body {
   border-color: var(--pixel-border);
   border-radius: 8px;
   padding: 24px;
-  background: var(--pixel-bg-card);
+  background: var(--gradient-card-bg);
   box-shadow: 
-    0 8px 32px rgba(255, 0, 110, 0.3),
+    0 8px 32px rgba(255, 0, 110, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 20px rgba(255, 0, 110, 0.2);
+    0 0 20px rgba(255, 0, 110, 0.1);
   transition: all 0.3s ease;
   position: relative;
 }
@@ -170,7 +182,7 @@ body {
   content: '';
   position: absolute;
   inset: -2px;
-  background: var(--gradient-cyberpunk);
+  background: var(--gradient-card);
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
