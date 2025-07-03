@@ -163,7 +163,7 @@ const DatabaseController = {
   async getUserById(req, res) {
     try {
       const { id } = req.params;
-      
+
       const user = await User.findByPk(id, {
         attributes: { exclude: ['password'] },
         include: [
@@ -211,15 +211,15 @@ const DatabaseController = {
   async resetAllUsers(req, res) {
     try {
       console.log(`🚨 RESET ALL USERS demandé par admin: ${req.user.email}`);
-      
+
       // Exécuter le script de réinitialisation
       await resetAllUsers();
-      
+
       // Compter le nombre d'utilisateurs après reset
       const userCount = await User.count();
-      
+
       console.log(`✅ Réinitialisation terminée: ${userCount} utilisateur(s) réinitialisé(s)`);
-      
+
       res.json({
         success: true,
         message: 'Tous les utilisateurs ont été réinitialisés avec succès',
@@ -229,7 +229,7 @@ const DatabaseController = {
           resetAt: new Date().toISOString()
         }
       });
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de la réinitialisation des utilisateurs:', error);
       res.status(500).json({

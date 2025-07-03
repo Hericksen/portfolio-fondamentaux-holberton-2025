@@ -29,7 +29,7 @@ const AdminController = {
         const completedQuests = userQuests.filter(uq => uq.is_completed === true);
         const pendingQuests = userQuests.filter(uq => uq.is_completed === false && !uq.is_expired);
         const expiredQuests = userQuests.filter(uq => uq.is_expired === true);
-        
+
         return {
           ...user.toJSON(),
           stats: {
@@ -37,7 +37,7 @@ const AdminController = {
             completedQuests: completedQuests.length,
             pendingQuests: pendingQuests.length,
             expiredQuests: expiredQuests.length,
-            completionRate: userQuests.length > 0 ? 
+            completionRate: userQuests.length > 0 ?
               Math.round((completedQuests.length / userQuests.length) * 100) : 0
           }
         };
@@ -61,7 +61,7 @@ const AdminController = {
   async deleteUser(req, res) {
     try {
       const { userId } = req.params;
-      
+
       // Vérifier que ce n'est pas l'admin qui se supprime lui-même
       if (req.user.userId === userId) {
         return res.status(400).json({
@@ -71,7 +71,7 @@ const AdminController = {
       }
 
       const user = await User.findByPk(userId);
-      
+
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -104,7 +104,7 @@ const AdminController = {
   async deleteMultipleUsers(req, res) {
     try {
       const { userIds } = req.body;
-      
+
       if (!userIds || !Array.isArray(userIds)) {
         return res.status(400).json({
           success: false,
@@ -162,7 +162,7 @@ const AdminController = {
   async assignQuestToUser(req, res) {
     try {
       const { userId, questId } = req.body;
-      
+
       if (!userId || !questId) {
         return res.status(400).json({
           success: false,
@@ -183,7 +183,7 @@ const AdminController = {
       const quest = await Quest.findOne({
         where: { id: questId, is_template: true, is_active: true }
       });
-      
+
       if (!quest) {
         return res.status(404).json({
           success: false,
@@ -193,9 +193,9 @@ const AdminController = {
 
       // Vérifier si la quête n'est pas déjà assignée à cet utilisateur
       const existingAssignment = await UserQuest.findOne({
-        where: { 
-          user_id: userId, 
-          quest_id: questId, 
+        where: {
+          user_id: userId,
+          quest_id: questId,
           is_completed: false,
           is_expired: false
         }
@@ -219,7 +219,7 @@ const AdminController = {
       // Récupérer les détails complets pour la réponse
       const fullUserQuest = await UserQuest.findByPk(userQuest.id, {
         include: [
-          { 
+          {
             model: Quest,
             attributes: ['id', 'title', 'description', 'type', 'category', 'xp_reward', 'difficulty', 'duration_minutes']
           },
@@ -236,10 +236,10 @@ const AdminController = {
         data: fullUserQuest
       });
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erreur serveur', 
-        error: error.message 
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
       });
     }
   },
@@ -248,7 +248,7 @@ const AdminController = {
   async assignMultipleQuestsToUser(req, res) {
     try {
       const { userId, questIds } = req.body;
-      
+
       if (!userId || !questIds || !Array.isArray(questIds)) {
         return res.status(400).json({
           success: false,
@@ -274,7 +274,7 @@ const AdminController = {
           const quest = await Quest.findOne({
             where: { id: questId, is_template: true, is_active: true }
           });
-          
+
           if (!quest) {
             errors.push(`Quête ${questId}: non trouvée ou inactive`);
             continue;
@@ -282,9 +282,9 @@ const AdminController = {
 
           // Vérifier si la quête n'est pas déjà assignée
           const existingAssignment = await UserQuest.findOne({
-            where: { 
-              user_id: userId, 
-              quest_id: questId, 
+            where: {
+              user_id: userId,
+              quest_id: questId,
               is_completed: false,
               is_expired: false
             }
@@ -326,10 +326,10 @@ const AdminController = {
         }
       });
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erreur serveur', 
-        error: error.message 
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
       });
     }
   },
@@ -338,7 +338,7 @@ const AdminController = {
   async assignQuestToMultipleUsers(req, res) {
     try {
       const { userIds, questId } = req.body;
-      
+
       if (!userIds || !Array.isArray(userIds) || !questId) {
         return res.status(400).json({
           success: false,
@@ -350,7 +350,7 @@ const AdminController = {
       const quest = await Quest.findOne({
         where: { id: questId, is_template: true, is_active: true }
       });
-      
+
       if (!quest) {
         return res.status(404).json({
           success: false,
@@ -376,12 +376,12 @@ const AdminController = {
       for (const userId of userIds) {
         try {
           const user = users.find(u => u.id == userId);
-          
+
           // Vérifier si la quête n'est pas déjà assignée
           const existingAssignment = await UserQuest.findOne({
-            where: { 
-              user_id: userId, 
-              quest_id: questId, 
+            where: {
+              user_id: userId,
+              quest_id: questId,
               is_completed: false,
               is_expired: false
             }
@@ -424,10 +424,10 @@ const AdminController = {
         }
       });
     } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erreur serveur', 
-        error: error.message 
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
       });
     }
   },
@@ -438,10 +438,10 @@ const AdminController = {
       // Compter les utilisateurs
       const totalUsers = await User.count();
       const activeUsers = await User.count({
-        where: { 
-          updatedAt: { 
+        where: {
+          updatedAt: {
             [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 derniers jours
-          } 
+          }
         }
       });
 
@@ -469,7 +469,7 @@ const AdminController = {
             total: totalAssignments,
             completed: completedAssignments,
             pending: pendingAssignments,
-            completionRate: totalAssignments > 0 ? 
+            completionRate: totalAssignments > 0 ?
               Math.round((completedAssignments / totalAssignments) * 100) : 0
           }
         }
@@ -484,12 +484,12 @@ const AdminController = {
   },
 
   // === GESTION DES QUÊTES ===
-  
+
   // Créer une nouvelle quête
   async createQuest(req, res) {
     try {
       const { title, description, category, xp_reward, difficulty, type, conditions, duration, max_participants } = req.body;
-      
+
       const quest = await Quest.create({
         title,
         description,
@@ -568,7 +568,7 @@ const AdminController = {
 
       // Supprimer d'abord toutes les assignations de cette quête
       await UserQuest.destroy({ where: { quest_id: questId } });
-      
+
       const questTitle = quest.title;
       await quest.destroy();
 
@@ -646,7 +646,7 @@ const AdminController = {
   async createAchievement(req, res) {
     try {
       const { title, description, icon, rarity, xp_reward, conditions, category } = req.body;
-      
+
       const achievement = await Achievement.create({
         title,
         description,
@@ -723,7 +723,7 @@ const AdminController = {
 
       // Supprimer d'abord toutes les attributions de cet achievement
       await UserAchievement.destroy({ where: { achievement_id: achievementId } });
-      
+
       const achievementTitle = achievement.title;
       await achievement.destroy();
 
@@ -880,7 +880,7 @@ const AdminController = {
       // Retirer l'XP de l'utilisateur
       const user = userAchievement.User;
       const achievement = userAchievement.Achievement;
-      
+
       await user.update({
         xp: Math.max(0, user.xp - achievement.xp_reward)
       });

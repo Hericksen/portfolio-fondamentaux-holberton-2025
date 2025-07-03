@@ -60,7 +60,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
@@ -73,7 +73,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   const handleRequirementChange = (type: string, value: string) => {
     setRequirementType(type);
     setRequirementValue(value);
-    
+
     let requirements;
     switch (type) {
       case 'level':
@@ -126,7 +126,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onSave(formData);
     }
@@ -259,7 +259,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
             <label style={{ display: 'block', marginBottom: '10px', color: 'gold', fontWeight: 'bold' }}>
               Prérequis pour débloquer
             </label>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
               <select
                 value={requirementType}
@@ -361,7 +361,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
             >
               Annuler
             </button>
-            
+
             <button
               type="submit"
               style={{

@@ -82,16 +82,23 @@ const AdminDashboard: React.FC = () => {
   const [showQuestModal, setShowQuestModal] = useState(false);
   const [questModalMode, setQuestModalMode] = useState<'create' | 'edit'>('create');
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
-  
+
   const [showAchievementModal, setShowAchievementModal] = useState(false);
   const [achievementModalMode, setAchievementModalMode] = useState<'create' | 'edit'>('create');
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-  
+
   const [showDeleteQuestModal, setShowDeleteQuestModal] = useState(false);
   const [questToDelete, setQuestToDelete] = useState<Quest | null>(null);
-  
+
   const [showDeleteAchievementModal, setShowDeleteAchievementModal] = useState(false);
   const [achievementToDelete, setAchievementToDelete] = useState<Achievement | null>(null);
+
+  // States pour les quêtes aléatoires
+  const [randomQuests, setRandomQuests] = useState<Quest[]>([]);
+  const [questCount, setQuestCount] = useState(3);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['development', 'design', 'learning']);
+  const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(['easy', 'medium', 'hard']);
+  const [generatingQuests, setGeneratingQuests] = useState(false);
 
   // Vérifier si l'utilisateur est admin
   useEffect(() => {
@@ -300,7 +307,7 @@ const AdminDashboard: React.FC = () => {
   const handleSaveQuest = async (questData: Quest) => {
     try {
       setLoading(true);
-      
+
       if (questModalMode === 'create') {
         await api.post('/admin/quests', questData);
         setNotification('✅ Quête créée avec succès !');
@@ -308,7 +315,7 @@ const AdminDashboard: React.FC = () => {
         await api.put(`/admin/quests/${questData.id}`, questData);
         setNotification('✅ Quête modifiée avec succès !');
       }
-      
+
       setShowQuestModal(false);
       fetchQuests();
     } catch (error) {
@@ -326,7 +333,7 @@ const AdminDashboard: React.FC = () => {
 
   const confirmDeleteQuest = async () => {
     if (!questToDelete) return;
-    
+
     try {
       setLoading(true);
       await api.delete(`/admin/quests/${questToDelete.id}`);
@@ -358,7 +365,7 @@ const AdminDashboard: React.FC = () => {
   const handleSaveAchievement = async (achievementData: Achievement) => {
     try {
       setLoading(true);
-      
+
       if (achievementModalMode === 'create') {
         await api.post('/admin/achievements', achievementData);
         setNotification('✅ Trophée créé avec succès !');
@@ -366,7 +373,7 @@ const AdminDashboard: React.FC = () => {
         await api.put(`/admin/achievements/${achievementData.id}`, achievementData);
         setNotification('✅ Trophée modifié avec succès !');
       }
-      
+
       setShowAchievementModal(false);
       fetchAchievements();
     } catch (error) {
@@ -384,7 +391,7 @@ const AdminDashboard: React.FC = () => {
 
   const confirmDeleteAchievement = async () => {
     if (!achievementToDelete) return;
-    
+
     try {
       setLoading(true);
       await api.delete(`/admin/achievements/${achievementToDelete.id}`);
@@ -397,6 +404,63 @@ const AdminDashboard: React.FC = () => {
       setNotification('❌ Erreur lors de la suppression du trophée');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fonctions pour les quêtes aléatoires
+  const generateRandomQuests = () => {
+    setGeneratingQuests(true);
+    
+    // Filtrer les quêtes selon les critères sélectionnés
+    const filteredQuests = quests.filter(quest => 
+      selectedCategories.includes(quest.category) && 
+      selectedDifficulties.includes(quest.difficulty)
+    );
+
+    if (filteredQuests.length === 0) {
+      setNotification('❌ Aucune quête ne correspond aux critères sélectionnés');
+      setGeneratingQuests(false);
+      return;
+    }
+
+    // Sélectionner des quêtes aléatoires
+    const shuffled = [...filteredQuests].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(questCount, shuffled.length));
+    
+    setRandomQuests(selected);
+    setNotification(`🎲 ${selected.length} quête(s) aléatoire(s) générée(s) !`);
+    setGeneratingQuests(false);
+  };
+
+  const clearRandomQuests = () => {
+    setRandomQuests([]);
+    setNotification('🗑️ Quêtes aléatoires effacées');
+  };
+
+  const assignRandomQuestToUser = async (quest: Quest, userId: string) => {
+    try {
+      await api.post('/admin/assign-quest', {
+        questId: quest.id,
+        userId: userId
+      });
+      setNotification(`✅ Quête "${quest.title}" assignée avec succès !`);
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation:', error);
+      setNotification('❌ Erreur lors de l\'assignation de la quête');
+    }
+  };
+
+  const assignRandomQuestToAllUsers = async (quest: Quest) => {
+    try {
+      const activeUsers = users.filter(u => u.role !== 'admin');
+      await api.post('/admin/assign-quest-to-multiple-users', {
+        questId: quest.id,
+        userIds: activeUsers.map(u => u.id)
+      });
+      setNotification(`🎯 Quête "${quest.title}" assignée à tous les utilisateurs !`);
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation multiple:', error);
+      setNotification('❌ Erreur lors de l\'assignation multiple');
     }
   };
 
@@ -523,6 +587,7 @@ const AdminDashboard: React.FC = () => {
             { id: 'users', label: '👥 Utilisateurs', icon: '👥' },
             { id: 'banned', label: '🚫 Bannis', icon: '🚫' },
             { id: 'quests', label: '⚔️ Quêtes', icon: '⚔️' },
+            { id: 'random-quests', label: '🎲 Quêtes Aléatoires', icon: '🎲' },
             { id: 'achievements', label: '🏆 Succès', icon: '🏆' }
           ].map(tab => (
             <button
@@ -973,6 +1038,279 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'random-quests' && (
+          <div>
+            {/* Random Quest Generator Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ color: '#ff006e', margin: 0 }}>🎲 Générateur de Quêtes Aléatoires</h3>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={generateRandomQuests}
+                  disabled={generatingQuests}
+                  style={{
+                    background: generatingQuests ? '#666' : 'linear-gradient(45deg, #ff006e, #8338ec)',
+                    border: 'none',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    cursor: generatingQuests ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  {generatingQuests ? '🔄 Génération...' : '🎲 Générer des Quêtes'}
+                </button>
+                {randomQuests.length > 0 && (
+                  <button
+                    onClick={clearRandomQuests}
+                    style={{
+                      background: 'rgba(255, 23, 68, 0.2)',
+                      border: '2px solid #ff1744',
+                      color: '#ff1744',
+                      padding: '12px 24px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    🗑️ Effacer
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Configuration Panel */}
+            <div style={{
+              background: 'rgba(26, 0, 51, 0.6)',
+              borderRadius: '15px',
+              padding: '25px',
+              border: '2px solid #ff006e',
+              marginBottom: '20px'
+            }}>
+              <h4 style={{ color: '#ff006e', marginBottom: '20px' }}>⚙️ Configuration du Générateur</h4>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {/* Nombre de quêtes */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '10px', color: '#ff006e', fontWeight: 'bold' }}>
+                    Nombre de quêtes à générer
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={questCount}
+                    onChange={(e) => setQuestCount(parseInt(e.target.value))}
+                    style={{
+                      width: '100%',
+                      marginBottom: '5px'
+                    }}
+                  />
+                  <div style={{ textAlign: 'center', color: '#06ffa5', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                    {questCount} quête(s)
+                  </div>
+                </div>
+
+                {/* Catégories */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '10px', color: '#ff006e', fontWeight: 'bold' }}>
+                    Catégories incluses
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {['development', 'design', 'learning', 'project', 'collaboration', 'other'].map(category => (
+                      <label key={category} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(category)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCategories([...selectedCategories, category]);
+                            } else {
+                              setSelectedCategories(selectedCategories.filter(c => c !== category));
+                            }
+                          }}
+                        />
+                        <span style={{ color: '#b8b8b8', fontSize: '0.9rem', textTransform: 'capitalize' }}>
+                          {category === 'development' ? '💻 Développement' :
+                           category === 'design' ? '🎨 Design' :
+                           category === 'learning' ? '📚 Apprentissage' :
+                           category === 'project' ? '🚀 Projet' :
+                           category === 'collaboration' ? '🤝 Collaboration' : '📦 Autre'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Difficultés */}
+                <div>
+                  <label style={{ display: 'block', marginBottom: '10px', color: '#ff006e', fontWeight: 'bold' }}>
+                    Difficultés incluses
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    {['easy', 'medium', 'hard'].map(difficulty => (
+                      <label key={difficulty} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedDifficulties.includes(difficulty)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDifficulties([...selectedDifficulties, difficulty]);
+                            } else {
+                              setSelectedDifficulties(selectedDifficulties.filter(d => d !== difficulty));
+                            }
+                          }}
+                        />
+                        <span style={{ 
+                          color: difficulty === 'easy' ? '#06ffa5' : difficulty === 'medium' ? '#ff006e' : '#8338ec',
+                          fontSize: '0.9rem',
+                          fontWeight: 'bold'
+                        }}>
+                          {difficulty === 'easy' ? '🟢 Facile' :
+                           difficulty === 'medium' ? '🟡 Moyen' : '🔴 Difficile'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Generated Quests Display */}
+            {randomQuests.length > 0 && (
+              <div style={{
+                background: 'rgba(26, 0, 51, 0.6)',
+                borderRadius: '15px',
+                padding: '25px',
+                border: '2px solid #06ffa5'
+              }}>
+                <h4 style={{ color: '#06ffa5', marginBottom: '20px' }}>🎯 Quêtes Générées ({randomQuests.length})</h4>
+                
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  {randomQuests.map((quest, index) => (
+                    <div key={`${quest.id}-${index}`} style={{
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      border: '1px solid #06ffa5',
+                      borderRadius: '10px',
+                      padding: '20px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ color: '#06ffa5', margin: '0 0 5px 0' }}>{quest.title}</h5>
+                          <p style={{ color: '#b8b8b8', margin: '0', fontSize: '0.9rem' }}>{quest.description}</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{
+                              background: getDifficultyColor(quest.difficulty),
+                              color: 'white',
+                              padding: '4px 8px',
+                              borderRadius: '12px',
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold',
+                              marginBottom: '5px'
+                            }}>
+                              {quest.difficulty.toUpperCase()}
+                            </div>
+                            <div style={{ color: '#06ffa5', fontWeight: 'bold' }}>
+                              +{quest.xp_reward} XP
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '10px', fontSize: '0.8rem' }}>
+                          <span style={{
+                            background: 'rgba(131, 56, 236, 0.3)',
+                            color: '#8338ec',
+                            padding: '2px 8px',
+                            borderRadius: '12px'
+                          }}>
+                            📂 {quest.category}
+                          </span>
+                          <span style={{
+                            background: 'rgba(255, 0, 110, 0.3)',
+                            color: '#ff006e',
+                            padding: '2px 8px',
+                            borderRadius: '12px'
+                          }}>
+                            📅 {quest.type}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value && e.target.value !== '') {
+                                assignRandomQuestToUser(quest, e.target.value);
+                                e.target.value = '';
+                              }
+                            }}
+                            style={{
+                              background: 'rgba(26, 0, 51, 0.8)',
+                              border: '1px solid #8338ec',
+                              color: 'white',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            <option value="">Assigner à un utilisateur...</option>
+                            {users.filter(u => u.role !== 'admin').map(user => (
+                              <option key={user.id} value={user.id}>
+                                {user.username} (Niveau {user.level})
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            onClick={() => assignRandomQuestToAllUsers(quest)}
+                            style={{
+                              background: 'rgba(6, 255, 165, 0.2)',
+                              border: '1px solid #06ffa5',
+                              color: '#06ffa5',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            🎯 Assigner à tous
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {randomQuests.length === 0 && (
+              <div style={{
+                background: 'rgba(26, 0, 51, 0.6)',
+                borderRadius: '15px',
+                padding: '40px',
+                border: '2px solid #666',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🎲</div>
+                <h4 style={{ color: '#b8b8b8', marginBottom: '10px' }}>Aucune quête générée</h4>
+                <p style={{ color: '#666', margin: 0 }}>
+                  Configurez vos préférences et cliquez sur "Générer des Quêtes" pour commencer !
+                </p>
+              </div>
+            )}
           </div>
         )}
 

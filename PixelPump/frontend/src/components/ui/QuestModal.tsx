@@ -58,7 +58,7 @@ const QuestModal: React.FC<QuestModalProps> = ({
       ...prev,
       [name]: name === 'xp_reward' ? parseInt(value) || 0 : value
     }));
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
@@ -89,7 +89,7 @@ const QuestModal: React.FC<QuestModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onSave(formData);
     }
@@ -324,7 +324,7 @@ const QuestModal: React.FC<QuestModalProps> = ({
             >
               Annuler
             </button>
-            
+
             <button
               type="submit"
               style={{

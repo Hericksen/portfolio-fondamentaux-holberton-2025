@@ -7,7 +7,7 @@ const AuthController = {
   async register(req, res) {
     try {
       const { username, email, password } = req.body;
-      
+
       if (!username || !email || !password) {
         return res.status(400).json({
           success: false,
@@ -77,7 +77,7 @@ const AuthController = {
   async login(req, res) {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({
           success: false,
@@ -87,7 +87,7 @@ const AuthController = {
 
       // Trouver l'utilisateur
       const user = await User.findOne({ where: { email } });
-      
+
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -97,7 +97,7 @@ const AuthController = {
 
       // Vérifier le mot de passe
       const isValidPassword = await bcrypt.compare(password, user.password);
-      
+
       if (!isValidPassword) {
         return res.status(401).json({
           success: false,
@@ -107,7 +107,7 @@ const AuthController = {
 
       // Mettre à jour les stats de connexion
       await user.updateLoginStats();
-      
+
       // S'assurer que le profil est complet (pour les anciens utilisateurs)
       user.initializeProfile();
       await user.save();
@@ -142,17 +142,17 @@ const AuthController = {
   async verifyToken(req, res) {
     try {
       const authHeader = req.header('Authorization');
-      
+
       if (!authHeader) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: 'Token manquant' 
+          message: 'Token manquant'
         });
       }
 
       const token = authHeader.replace('Bearer ', '');
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'pixelpump_secret_key_2025');
-      
+
       const user = await User.findByPk(decoded.userId, {
         attributes: { exclude: ['password'] }
       });
@@ -180,10 +180,10 @@ const AuthController = {
   async getAdminToken(req, res) {
     try {
       const { adminSecret } = req.body;
-      
+
       // Vérifier le secret d'admin (pour des raisons de sécurité en développement)
       const ADMIN_SECRET = process.env.ADMIN_SECRET || 'pixelpump_admin_2025';
-      
+
       if (adminSecret !== ADMIN_SECRET) {
         return res.status(401).json({
           success: false,
@@ -193,11 +193,11 @@ const AuthController = {
 
       // Créer un token d'administrateur temporaire
       const adminToken = jwt.sign(
-        { 
-          userId: 'admin-temp', 
-          email: 'admin@pixelpump.dev', 
+        {
+          userId: 'admin-temp',
+          email: 'admin@pixelpump.dev',
           role: 'admin',
-          isTemporary: true 
+          isTemporary: true
         },
         process.env.JWT_SECRET || 'pixelpump_secret_key_2025',
         { expiresIn: '1h' }
