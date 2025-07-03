@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import QuestModal from '../components/ui/QuestModal';
+import AchievementModal from '../components/ui/AchievementModal';
 
 interface User {
   id: string;
@@ -23,7 +25,7 @@ interface BannedUser extends User {
 }
 
 interface Quest {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   category: string;
@@ -33,7 +35,7 @@ interface Quest {
 }
 
 interface Achievement {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   category: string;
@@ -53,14 +55,14 @@ const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
-  
+
   // States pour les données
   const [users, setUsers] = useState<User[]>([]);
   const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<DatabaseStats | null>(null);
-  
+
   // States pour les actions
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState('');
@@ -75,6 +77,21 @@ const AdminDashboard: React.FC = () => {
     userId: '',
     userCount: 0
   });
+
+  // States pour les modales de quêtes et trophées
+  const [showQuestModal, setShowQuestModal] = useState(false);
+  const [questModalMode, setQuestModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
+  
+  const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [achievementModalMode, setAchievementModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  
+  const [showDeleteQuestModal, setShowDeleteQuestModal] = useState(false);
+  const [questToDelete, setQuestToDelete] = useState<Quest | null>(null);
+  
+  const [showDeleteAchievementModal, setShowDeleteAchievementModal] = useState(false);
+  const [achievementToDelete, setAchievementToDelete] = useState<Achievement | null>(null);
 
   // Vérifier si l'utilisateur est admin
   useEffect(() => {
@@ -190,7 +207,7 @@ const AdminDashboard: React.FC = () => {
             return Promise.resolve();
         }
       });
-      
+
       await Promise.all(promises);
       setNotification(`✅ Action "${bulkAction}" appliquée à ${selectedUsers.length} utilisateur(s)`);
       setSelectedUsers([]);
@@ -206,7 +223,7 @@ const AdminDashboard: React.FC = () => {
   const confirmDeleteUser = async () => {
     try {
       setLoading(true);
-      
+
       // Récupérer les données de l'utilisateur avant suppression
       const userToDelete = users.find(u => u.id === deleteModalData.userId);
       if (userToDelete) {
@@ -221,7 +238,7 @@ const AdminDashboard: React.FC = () => {
         localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
         setBannedUsers(bannedList);
       }
-      
+
       await api.delete(`/users/${deleteModalData.userId}`);
       setNotification('✅ Pumper supprimé de l\'univers PixelPump avec succès');
       fetchUsers();
@@ -236,11 +253,11 @@ const AdminDashboard: React.FC = () => {
   const confirmBulkDeleteUsers = async () => {
     try {
       setLoading(true);
-      
+
       // Récupérer les données des utilisateurs avant suppression
       const usersToDelete = users.filter(u => selectedUsers.includes(u.id));
       const bannedList: BannedUser[] = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
-      
+
       usersToDelete.forEach(userToDelete => {
         const bannedUser: BannedUser = {
           ...userToDelete,
@@ -249,10 +266,10 @@ const AdminDashboard: React.FC = () => {
         };
         bannedList.push(bannedUser);
       });
-      
+
       localStorage.setItem('bannedUsers', JSON.stringify(bannedList));
       setBannedUsers(bannedList);
-      
+
       const promises = selectedUsers.map(userId => api.delete(`/users/${userId}`));
       await Promise.all(promises);
       setNotification(`🎮 ${selectedUsers.length} pumper(s) banni(s) de l'univers PixelPump avec succès !`);
@@ -264,6 +281,122 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
       setShowBulkDeleteModal(false);
+    }
+  };
+
+  // Quest CRUD functions
+  const handleCreateQuest = () => {
+    setQuestModalMode('create');
+    setSelectedQuest(null);
+    setShowQuestModal(true);
+  };
+
+  const handleEditQuest = (quest: Quest) => {
+    setQuestModalMode('edit');
+    setSelectedQuest(quest);
+    setShowQuestModal(true);
+  };
+
+  const handleSaveQuest = async (questData: Quest) => {
+    try {
+      setLoading(true);
+      
+      if (questModalMode === 'create') {
+        await api.post('/admin/quests', questData);
+        setNotification('✅ Quête créée avec succès !');
+      } else {
+        await api.put(`/admin/quests/${questData.id}`, questData);
+        setNotification('✅ Quête modifiée avec succès !');
+      }
+      
+      setShowQuestModal(false);
+      fetchQuests();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde de la quête:', error);
+      setNotification('❌ Erreur lors de la sauvegarde de la quête');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteQuestClick = (quest: Quest) => {
+    setQuestToDelete(quest);
+    setShowDeleteQuestModal(true);
+  };
+
+  const confirmDeleteQuest = async () => {
+    if (!questToDelete) return;
+    
+    try {
+      setLoading(true);
+      await api.delete(`/admin/quests/${questToDelete.id}`);
+      setNotification('✅ Quête supprimée avec succès !');
+      setShowDeleteQuestModal(false);
+      setQuestToDelete(null);
+      fetchQuests();
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la quête:', error);
+      setNotification('❌ Erreur lors de la suppression de la quête');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Achievement CRUD functions
+  const handleCreateAchievement = () => {
+    setAchievementModalMode('create');
+    setSelectedAchievement(null);
+    setShowAchievementModal(true);
+  };
+
+  const handleEditAchievement = (achievement: Achievement) => {
+    setAchievementModalMode('edit');
+    setSelectedAchievement(achievement);
+    setShowAchievementModal(true);
+  };
+
+  const handleSaveAchievement = async (achievementData: Achievement) => {
+    try {
+      setLoading(true);
+      
+      if (achievementModalMode === 'create') {
+        await api.post('/admin/achievements', achievementData);
+        setNotification('✅ Trophée créé avec succès !');
+      } else {
+        await api.put(`/admin/achievements/${achievementData.id}`, achievementData);
+        setNotification('✅ Trophée modifié avec succès !');
+      }
+      
+      setShowAchievementModal(false);
+      fetchAchievements();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du trophée:', error);
+      setNotification('❌ Erreur lors de la sauvegarde du trophée');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAchievementClick = (achievement: Achievement) => {
+    setAchievementToDelete(achievement);
+    setShowDeleteAchievementModal(true);
+  };
+
+  const confirmDeleteAchievement = async () => {
+    if (!achievementToDelete) return;
+    
+    try {
+      setLoading(true);
+      await api.delete(`/admin/achievements/${achievementToDelete.id}`);
+      setNotification('✅ Trophée supprimé avec succès !');
+      setShowDeleteAchievementModal(false);
+      setAchievementToDelete(null);
+      fetchAchievements();
+    } catch (error) {
+      console.error('Erreur lors de la suppression du trophée:', error);
+      setNotification('❌ Erreur lors de la suppression du trophée');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -319,7 +452,7 @@ const AdminDashboard: React.FC = () => {
           }}>
             ⚡ PixelPump Admin
           </div>
-          
+
           <nav style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             <Link to="/dashboard" style={{
               color: '#8338ec',
@@ -534,7 +667,7 @@ const AdminDashboard: React.FC = () => {
                   <option value="resetProgress">Réinitialiser progression</option>
                   <option value="delete">Bannir les pumpers</option>
                 </select>
-                
+
                 <button
                   onClick={handleBulkAction}
                   disabled={!bulkAction || selectedUsers.length === 0}
@@ -562,7 +695,7 @@ const AdminDashboard: React.FC = () => {
               overflowX: 'auto'
             }}>
               <h3 style={{ color: '#ff006e', marginBottom: '20px' }}>👥 Gestion des utilisateurs</h3>
-              
+
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>🔄 Chargement...</div>
               ) : (
@@ -711,104 +844,250 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {activeTab === 'quests' && (
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            borderRadius: '15px',
-            padding: '25px',
-            border: '2px solid #06ffa5'
-          }}>
-            <h3 style={{ color: '#06ffa5', marginBottom: '20px' }}>⚔️ Gestion des quêtes</h3>
-            
-            <div style={{ display: 'grid', gap: '15px' }}>
-              {quests.map(quest => (
-                <div key={quest.id} style={{
-                  background: 'rgba(6, 255, 165, 0.1)',
-                  border: '1px solid #06ffa5',
-                  borderRadius: '10px',
-                  padding: '20px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                    <div>
-                      <h4 style={{ color: '#06ffa5', margin: '0 0 5px 0' }}>{quest.title}</h4>
-                      <p style={{ color: '#b8b8b8', margin: '0', fontSize: '0.9rem' }}>{quest.description}</p>
+          <div>
+            {/* Quest Management Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ color: '#06ffa5', margin: 0 }}>⚔️ Gestion des quêtes</h3>
+              <button
+                onClick={handleCreateQuest}
+                style={{
+                  background: 'linear-gradient(45deg, #06ffa5, #8338ec)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
+                }}
+              >
+                ➕ Nouvelle Quête
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(26, 0, 51, 0.6)',
+              borderRadius: '15px',
+              padding: '25px',
+              border: '2px solid #06ffa5'
+            }}>
+              <div style={{ display: 'grid', gap: '15px' }}>
+                {quests.map(quest => (
+                  <div key={quest.id} style={{
+                    background: 'rgba(6, 255, 165, 0.1)',
+                    border: '1px solid #06ffa5',
+                    borderRadius: '10px',
+                    padding: '20px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ color: '#06ffa5', margin: '0 0 5px 0' }}>{quest.title}</h4>
+                        <p style={{ color: '#b8b8b8', margin: '0', fontSize: '0.9rem' }}>{quest.description}</p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{
+                            background: getDifficultyColor(quest.difficulty),
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.7rem',
+                            fontWeight: 'bold',
+                            marginBottom: '5px'
+                          }}>
+                            {quest.difficulty.toUpperCase()}
+                          </div>
+                          <div style={{ color: '#06ffa5', fontWeight: 'bold' }}>
+                            +{quest.xp_reward} XP
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <button
+                            onClick={() => handleEditQuest(quest)}
+                            style={{
+                              background: 'rgba(131, 56, 236, 0.2)',
+                              border: '1px solid #8338ec',
+                              color: '#8338ec',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            ✏️ Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteQuestClick(quest)}
+                            style={{
+                              background: 'rgba(255, 23, 68, 0.2)',
+                              border: '1px solid #ff1744',
+                              color: '#ff1744',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            🗑️ Supprimer
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{
-                        background: getDifficultyColor(quest.difficulty),
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        marginBottom: '5px'
+
+                    <div style={{ display: 'flex', gap: '10px', fontSize: '0.8rem' }}>
+                      <span style={{
+                        background: 'rgba(131, 56, 236, 0.3)',
+                        color: '#8338ec',
+                        padding: '2px 8px',
+                        borderRadius: '12px'
                       }}>
-                        {quest.difficulty.toUpperCase()}
-                      </div>
-                      <div style={{ color: '#06ffa5', fontWeight: 'bold' }}>
-                        +{quest.xp_reward} XP
-                      </div>
+                        📂 {quest.category}
+                      </span>
+                      <span style={{
+                        background: 'rgba(255, 0, 110, 0.3)',
+                        color: '#ff006e',
+                        padding: '2px 8px',
+                        borderRadius: '12px'
+                      }}>
+                        📅 {quest.type}
+                      </span>
                     </div>
                   </div>
-                  
-                  <div style={{ display: 'flex', gap: '10px', fontSize: '0.8rem' }}>
-                    <span style={{
-                      background: 'rgba(131, 56, 236, 0.3)',
-                      color: '#8338ec',
-                      padding: '2px 8px',
-                      borderRadius: '12px'
-                    }}>
-                      {quest.category}
-                    </span>
-                    <span style={{
-                      background: 'rgba(255, 0, 110, 0.3)',
-                      color: '#ff006e',
-                      padding: '2px 8px',
-                      borderRadius: '12px'
-                    }}>
-                      {quest.type}
-                    </span>
+                ))}
+
+                {quests.length === 0 && (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#b8b8b8'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>⚔️</div>
+                    <h4>Aucune quête disponible</h4>
+                    <p>Créez votre première quête pour commencer !</p>
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'achievements' && (
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            borderRadius: '15px',
-            padding: '25px',
-            border: '2px solid gold'
-          }}>
-            <h3 style={{ color: 'gold', marginBottom: '20px' }}>🏆 Gestion des succès</h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-              {achievements.map(achievement => (
-                <div key={achievement.id} style={{
-                  background: 'rgba(255, 215, 0, 0.1)',
-                  border: '2px solid gold',
-                  borderRadius: '15px',
-                  padding: '20px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏆</div>
-                  <h4 style={{ color: 'gold', margin: '0 0 10px 0' }}>{achievement.title}</h4>
-                  <p style={{ color: '#b8b8b8', fontSize: '0.9rem', margin: '0 0 15px 0' }}>
-                    {achievement.description}
-                  </p>
-                  <div style={{
-                    background: 'rgba(131, 56, 236, 0.3)',
-                    color: '#8338ec',
-                    padding: '5px 10px',
-                    borderRadius: '12px',
-                    fontSize: '0.8rem',
-                    display: 'inline-block'
+          <div>
+            {/* Achievement Management Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ color: 'gold', margin: 0 }}>🏆 Gestion des trophées</h3>
+              <button
+                onClick={handleCreateAchievement}
+                style={{
+                  background: 'linear-gradient(45deg, gold, #ff8500)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
+                }}
+              >
+                ➕ Nouveau Trophée
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(26, 0, 51, 0.6)',
+              borderRadius: '15px',
+              padding: '25px',
+              border: '2px solid gold'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {achievements.map(achievement => (
+                  <div key={achievement.id} style={{
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    border: '2px solid gold',
+                    borderRadius: '15px',
+                    padding: '20px',
+                    textAlign: 'center',
+                    position: 'relative'
                   }}>
-                    {achievement.category}
+                    {/* Action buttons */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      display: 'flex',
+                      gap: '5px'
+                    }}>
+                      <button
+                        onClick={() => handleEditAchievement(achievement)}
+                        style={{
+                          background: 'rgba(131, 56, 236, 0.2)',
+                          border: '1px solid #8338ec',
+                          color: '#8338ec',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.7rem'
+                        }}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAchievementClick(achievement)}
+                        style={{
+                          background: 'rgba(255, 23, 68, 0.2)',
+                          border: '1px solid #ff1744',
+                          color: '#ff1744',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.7rem'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+
+                    <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏆</div>
+                    <h4 style={{ color: 'gold', margin: '0 0 10px 0' }}>{achievement.title}</h4>
+                    <p style={{ color: '#b8b8b8', fontSize: '0.9rem', margin: '0 0 15px 0' }}>
+                      {achievement.description}
+                    </p>
+                    <div style={{
+                      background: 'rgba(131, 56, 236, 0.3)',
+                      color: '#8338ec',
+                      padding: '5px 10px',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      display: 'inline-block'
+                    }}>
+                      📂 {achievement.category}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+
+                {achievements.length === 0 && (
+                  <div style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#b8b8b8'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🏆</div>
+                    <h4>Aucun trophée disponible</h4>
+                    <p>Créez votre premier trophée pour motiver les pumpers !</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -821,7 +1100,7 @@ const AdminDashboard: React.FC = () => {
             border: '2px solid #ff1744'
           }}>
             <h3 style={{ color: '#ff1744', marginBottom: '20px' }}>🚫 Pumpers bannis</h3>
-            
+
             {bannedUsers.length === 0 ? (
               <div style={{
                 textAlign: 'center',
@@ -848,7 +1127,7 @@ const AdminDashboard: React.FC = () => {
                   </thead>
                   <tbody>
                     {bannedUsers.map((bannedUser, index) => (
-                      <tr key={`banned-${index}`} style={{ 
+                      <tr key={`banned-${index}`} style={{
                         borderBottom: '1px solid rgba(255, 23, 68, 0.2)',
                         background: 'rgba(255, 23, 68, 0.05)'
                       }}>
@@ -893,7 +1172,7 @@ const AdminDashboard: React.FC = () => {
                 </table>
               </div>
             )}
-            
+
             {bannedUsers.length > 0 && (
               <div style={{
                 marginTop: '20px',
@@ -910,6 +1189,46 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Quest Modals */}
+      <QuestModal
+        isOpen={showQuestModal}
+        onClose={() => setShowQuestModal(false)}
+        onSave={handleSaveQuest}
+        quest={selectedQuest}
+        mode={questModalMode}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteQuestModal}
+        onClose={() => setShowDeleteQuestModal(false)}
+        onConfirm={confirmDeleteQuest}
+        title="Supprimer la quête"
+        message={`Êtes-vous sûr de vouloir supprimer la quête "${questToDelete?.title}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
+
+      {/* Achievement Modals */}
+      <AchievementModal
+        isOpen={showAchievementModal}
+        onClose={() => setShowAchievementModal(false)}
+        onSave={handleSaveAchievement}
+        achievement={selectedAchievement}
+        mode={achievementModalMode}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteAchievementModal}
+        onClose={() => setShowDeleteAchievementModal(false)}
+        onConfirm={confirmDeleteAchievement}
+        title="Supprimer le trophée"
+        message={`Êtes-vous sûr de vouloir supprimer le trophée "${achievementToDelete?.title}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
     </div>
   );
 };

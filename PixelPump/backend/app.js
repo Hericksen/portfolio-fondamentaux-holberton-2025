@@ -15,7 +15,7 @@ console.log('✅ Middlewares configurés');
 
 // Route racine et health check
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'PixelPump Backend API 🚀',
     version: '1.0.0',
     status: 'operational',
@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     database: 'connected'
@@ -59,7 +59,7 @@ try {
   app.use('/api/database', databaseRoutes);
   app.use('/api/advanced-quests', advancedQuestRoutes);
   app.use('/api/admin', adminRoutes);
-  
+
   console.log('✅ Routes API configurées');
 } catch (error) {
   console.error('❌ Erreur lors du chargement des routes:', error);
@@ -67,7 +67,7 @@ try {
 
 // Middleware de gestion des erreurs 404
 app.use((req, res, next) => {
-  res.status(404).json({ 
+  res.status(404).json({
     success: false,
     message: 'Route non trouvée',
     path: req.originalUrl
@@ -77,7 +77,7 @@ app.use((req, res, next) => {
 // Middleware de gestion des erreurs serveur
 app.use((err, req, res, next) => {
   console.error('❌ Erreur serveur:', err);
-  res.status(500).json({ 
+  res.status(500).json({
     success: false,
     message: 'Erreur interne du serveur',
     error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
@@ -92,23 +92,27 @@ async function startServer() {
     // Import database connection
     const sequelize = require('./config/db');
     console.log('✅ Configuration DB chargée');
-    
+
     // Import models avec relations
     require('./models/index');
     console.log('✅ Modèles chargés');
-    
+
     // Initialiser le scheduler de quêtes avancé
     const AdvancedQuestScheduler = require('./services/AdvancedQuestScheduler');
     AdvancedQuestScheduler.init();
-    
+
     // Test de connexion à la base de données
     await sequelize.authenticate();
     console.log('✅ Connexion à PostgreSQL établie avec succès');
-    
+
     // Synchronisation des modèles (force: false pour préserver les données)
     await sequelize.sync({ force: false });
     console.log('✅ Base de données synchronisée');
-    
+
+    // Créer les utilisateurs de démo si nécessaire
+    const { createDemoUsers } = require('./seeds/seed');
+    await createDemoUsers();
+
     // Démarrage du serveur
     app.listen(PORT, () => {
       console.log(`🚀 Serveur PixelPump Backend démarré !`);

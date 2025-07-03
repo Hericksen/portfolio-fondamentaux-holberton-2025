@@ -41,25 +41,24 @@ class UserService {
 
   async createUser(data) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const defaultProfile = this.getDefaultUserProfile();
     
     return await User.create({
-      ...defaultProfile,
-      ...data,
+      username: data.username,
+      email: data.email,
       password: hashedPassword
     });
   }
 
   async createUserWithProfile(userData) {
     const { username, email, password } = userData;
-    const defaultProfile = this.getDefaultUserProfile();
     const hashedPassword = await bcrypt.hash(password, 12);
     
+    // Créer l'utilisateur avec seulement les champs de base
+    // Les valeurs par défaut seront automatiquement appliquées par le modèle
     const user = await User.create({
       username,
       email,
-      password: hashedPassword,
-      ...defaultProfile
+      password: hashedPassword
     });
 
     return user;

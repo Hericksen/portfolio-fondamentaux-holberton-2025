@@ -34,9 +34,6 @@ const AuthController = {
         });
       }
 
-      // Hacher le mot de passe
-      const hashedPassword = await bcrypt.hash(password, 12);
-      
       // Créer l'utilisateur avec un profil complet par défaut via UserService
       const user = await UserService.createUserWithProfile({
         username,

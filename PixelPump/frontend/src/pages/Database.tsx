@@ -110,7 +110,7 @@ const Database: React.FC = () => {
 
     setLoading(true);
     setError('');
-    
+
     try {
       const endpoint = `http://localhost:3001/api/database/${tableName}`;
 
@@ -319,7 +319,7 @@ const Database: React.FC = () => {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
                   }}>
-                    {typeof row[col] === 'object' && row[col] !== null 
+                    {typeof row[col] === 'object' && row[col] !== null
                       ? JSON.stringify(row[col]).substring(0, 50) + '...'
                       : String(row[col] || 'NULL')
                     }
@@ -342,7 +342,7 @@ const Database: React.FC = () => {
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        
+
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <Link
@@ -364,7 +364,7 @@ const Database: React.FC = () => {
           >
             ← RETOUR DASHBOARD
           </Link>
-          
+
           <h1 style={{
             fontSize: '2.5rem',
             fontWeight: 'bold',
@@ -374,7 +374,7 @@ const Database: React.FC = () => {
           }}>
             BASE DE DONNÉES ADMIN
           </h1>
-          
+
           {isAuthenticated && adminInfo && (
             <div style={{ textAlign: 'right' }}>
               <div style={{ color: '#06ffa5', fontSize: '0.9rem', marginBottom: '5px' }}>
@@ -487,11 +487,11 @@ const Database: React.FC = () => {
                   disabled={loading}
                   style={{
                     padding: '20px',
-                    background: selectedTable === table.key 
-                      ? 'rgba(255, 0, 110, 0.2)' 
+                    background: selectedTable === table.key
+                      ? 'rgba(255, 0, 110, 0.2)'
                       : 'rgba(26, 0, 51, 0.8)',
-                    border: selectedTable === table.key 
-                      ? '2px solid #ff006e' 
+                    border: selectedTable === table.key
+                      ? '2px solid #ff006e'
                       : '2px solid #8338ec',
                     borderRadius: '10px',
                     color: selectedTable === table.key ? '#ff006e' : '#8338ec',
@@ -499,8 +499,8 @@ const Database: React.FC = () => {
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
                     cursor: loading ? 'not-allowed' : 'pointer',
-                    boxShadow: selectedTable === table.key 
-                      ? '0 0 20px rgba(255, 0, 110, 0.4)' 
+                    boxShadow: selectedTable === table.key
+                      ? '0 0 20px rgba(255, 0, 110, 0.4)'
                       : '0 0 15px rgba(131, 56, 236, 0.3)',
                     transition: 'all 0.3s ease',
                     opacity: loading ? 0.5 : 1
@@ -556,7 +556,7 @@ const Database: React.FC = () => {
                     {tableData.length} ENTRÉES
                   </span>
                 </div>
-                
+
                 {renderTableData(tableData)}
               </div>
             )}

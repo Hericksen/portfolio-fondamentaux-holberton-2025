@@ -12,7 +12,7 @@
   --pixel-success: #06ffa5;     /* Vert néon */
   --pixel-warning: #ffbe0b;     /* Jaune électrique */
   --pixel-error: #ff006e;       /* Rose néon */
-  
+
   /* Couleurs supplémentaires pour l'UI */
   --pixel-orange: #ff8500;      /* Orange cyberpunk */
   --pixel-red: #ff1744;         /* Rouge vif */
@@ -22,35 +22,35 @@
   --pixel-green: #4caf50;       /* Vert Matrix */
   --pixel-space: rgba(10, 0, 20, 0.9); /* Couleur d'espace */
   --pixel-grid: #333344;        /* Couleur de grille */
-  
+
   /* Backgrounds - Dégradé cyberpunk */
   --pixel-bg-dark: #0a0014;     /* Noir profond violacé */
   --pixel-bg-primary: #1a0033;  /* Violet très foncé */
   --pixel-bg-secondary: #2d1b69; /* Violet moyen */
   --pixel-bg-card: rgba(26, 0, 51, 0.8); /* Violet transparent */
   --pixel-bg-hover: rgba(255, 0, 110, 0.1); /* Rose transparent */
-  
+
   /* Dégradé principal cyberpunk - version smooth */
-  --gradient-cyberpunk: linear-gradient(135deg, 
+  --gradient-cyberpunk: linear-gradient(135deg,
     #ff006e 0%,    /* Rose néon */
     #8338ec 50%,   /* Violet */
     #3a86ff 100%   /* Bleu électrique */
   );
-  
+
   /* Dégradé alternatif plus subtil pour les cartes */
-  --gradient-card: linear-gradient(135deg, 
-    rgba(255, 0, 110, 0.15) 0%, 
-    rgba(131, 56, 236, 0.10) 50%, 
+  --gradient-card: linear-gradient(135deg,
+    rgba(255, 0, 110, 0.15) 0%,
+    rgba(131, 56, 236, 0.10) 50%,
     rgba(58, 134, 255, 0.05) 100%
   );
-  
+
   /* Dégradé subtil pour fond de cartes */
-  --gradient-card-bg: linear-gradient(135deg, 
-    rgba(26, 0, 51, 0.9) 0%, 
-    rgba(45, 27, 105, 0.8) 50%, 
+  --gradient-card-bg: linear-gradient(135deg,
+    rgba(26, 0, 51, 0.9) 0%,
+    rgba(45, 27, 105, 0.8) 50%,
     rgba(26, 0, 51, 0.9) 100%
   );
-  
+
   /* Dégradé fond */
   --gradient-bg: linear-gradient(135deg,
     #0a0014 0%,
@@ -59,13 +59,13 @@
     #1a0033 75%,
     #0a0014 100%
   );
-  
+
   /* Text */
   --pixel-text-primary: #ffffff;
   --pixel-text-secondary: #ff006e;
   --pixel-text-accent: #8338ec;
   --pixel-text-muted: #9d4edd;
-  
+
   /* Borders */
   --pixel-border: #ff006e;
   --pixel-border-secondary: #8338ec;
@@ -73,6 +73,39 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Supprimer le curseur d'insertion sur les textes non éditables */
+*, *::before, *::after {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Permettre la sélection pour les inputs et zones de texte */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Supprimer le curseur I-beam sur les éléments non éditables */
+body, div, span, p, h1, h2, h3, h4, h5, h6,
+button, a, label, li, ul, ol, nav, header, footer,
+.card, .btn, .button, .text, .title, .subtitle {
+  cursor: default !important;
+}
+
+/* Curseur pointer pour les éléments cliquables */
+button, a, [role="button"], .clickable {
+  cursor: pointer !important;
+}
+
+/* Curseur text uniquement pour les champs de saisie */
+input, textarea, [contenteditable="true"] {
+  cursor: text !important;
 }
 
 body {
@@ -104,11 +137,11 @@ body {
 
 /* Arrière-plan animé style space */
 .space-gradient {
-  background: linear-gradient(135deg, 
-    var(--pixel-bg-dark) 0%, 
-    #0d1421 25%, 
-    #1a1a2e  50%, 
-    #16213e 75%, 
+  background: linear-gradient(135deg,
+    var(--pixel-bg-dark) 0%,
+    #0d1421 25%,
+    #1a1a2e  50%,
+    #16213e 75%,
     var(--pixel-bg-dark) 100%
   );
   background-size: 400% 400%;
@@ -127,7 +160,7 @@ body {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  text-shadow: 
+  text-shadow:
     0 0 5px currentColor,
     0 0 10px currentColor,
     0 0 15px currentColor;
@@ -152,7 +185,9 @@ body {
   transition: all 0.3s ease;
   transform: scale(1);
   font-family: 'Orbitron', sans-serif;
-  
+  cursor: pointer !important;
+  user-select: none;
+
   /* Effet de border animé */
   background: linear-gradient(45deg, transparent 30%, currentColor 50%, transparent 70%);
   background-size: 200% 200%;
@@ -162,7 +197,7 @@ body {
 
 .pixel-btn:hover {
   background-position: 0 100%;
-  box-shadow: 
+  box-shadow:
     0 0 20px currentColor,
     inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
@@ -175,7 +210,7 @@ body {
   border-radius: 8px;
   padding: 24px;
   background: var(--gradient-card-bg);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(255, 0, 110, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 0 20px rgba(255, 0, 110, 0.1);
@@ -200,7 +235,7 @@ body {
 
 .pixel-card:hover {
   border-color: transparent;
-  box-shadow: 
+  box-shadow:
     0 12px 40px rgba(255, 0, 110, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 0 30px rgba(255, 0, 110, 0.3);
@@ -263,6 +298,8 @@ body {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  cursor: default !important;
+  user-select: none;
   background: rgba(0, 255, 255, 0.2);
   border: 1px solid var(--pixel-primary);
   color: var(--pixel-primary);
@@ -330,7 +367,7 @@ body {
 
 /* Effets spéciaux cyberpunk */
 .cyberpunk-grid {
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 0, 110, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 0, 110, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
@@ -345,7 +382,7 @@ body {
 /* Glow text effect pour les titres */
 .neon-text {
   color: var(--pixel-primary);
-  text-shadow: 
+  text-shadow:
     0 0 5px var(--pixel-primary),
     0 0 10px var(--pixel-primary),
     0 0 20px var(--pixel-primary),
@@ -355,14 +392,14 @@ body {
 
 @keyframes neonFlicker {
   0%, 18%, 22%, 25%, 53%, 57%, 100% {
-    text-shadow: 
+    text-shadow:
       0 0 5px var(--pixel-primary),
       0 0 10px var(--pixel-primary),
       0 0 20px var(--pixel-primary),
       0 0 40px var(--pixel-primary);
   }
   20%, 24%, 55% {
-    text-shadow: 
+    text-shadow:
       0 0 2px var(--pixel-primary),
       0 0 5px var(--pixel-primary),
       0 0 8px var(--pixel-primary),
@@ -404,7 +441,7 @@ body {
 
 .cyberpunk-btn:hover {
   color: white;
-  box-shadow: 
+  box-shadow:
     0 0 20px var(--pixel-primary),
     inset 0 0 20px rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
@@ -462,9 +499,9 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.2) 50%, 
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
     transparent 100%);
   animation: statGlow 2s ease-in-out infinite;
 }
@@ -616,9 +653,9 @@ body {
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
   border: 3px solid var(--pixel-primary);
-  background: linear-gradient(135deg, 
+  background: linear-gradient(135deg,
     #ff006e 0%,
-    #8338ec 25%, 
+    #8338ec 25%,
     #ff8500 50%,
     #ffea00 75%,
     #ff006e 100%
@@ -627,11 +664,11 @@ body {
 }
 
 @keyframes pixelGlow {
-  0% { 
+  0% {
     box-shadow: 0 0 20px var(--pixel-primary);
     filter: hue-rotate(0deg);
   }
-  100% { 
+  100% {
     box-shadow: 0 0 40px var(--pixel-secondary), 0 0 60px var(--pixel-accent);
     filter: hue-rotate(15deg);
   }
@@ -652,7 +689,7 @@ body {
 
 /* Grille style cyberpunk */
 .cyberpunk-grid-enhanced {
-  background-image: 
+  background-image:
     /* Lignes verticales */
     linear-gradient(90deg, transparent 0px, transparent 19px, rgba(255, 0, 110, 0.15) 20px, rgba(255, 0, 110, 0.15) 21px, transparent 22px),
     /* Lignes horizontales */
@@ -690,4 +727,89 @@ body {
   0%, 98% { opacity: 1; }
   99% { opacity: 0.8; }
   100% { opacity: 1; }
+}
+
+/* Badge et status */
+.pixel-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: default !important;
+  user-select: none;
+  background: rgba(0, 255, 255, 0.2);
+  border: 1px solid var(--pixel-primary);
+  color: var(--pixel-primary);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Styles pour supprimer le curseur d'insertion sur les éléments courants */
+.card, .pixel-card, .dashboard-card, .quest-card, .achievement-card,
+.stat-card, .progress-card, .profile-card, .admin-card,
+.nav-item, .menu-item, .list-item, .table-cell, .table-row,
+.header, .footer, .sidebar, .panel, .modal, .dialog,
+.badge, .tag, .label, .notification, .alert, .toast,
+.avatar, .icon, .image, .chart, .graph, .meter, .gauge {
+  cursor: default !important;
+  user-select: none;
+}
+
+/* Éléments cliquables - curseur pointer */
+.clickable, .interactive, .link, .nav-link, .menu-link,
+.toggle, .switch, .checkbox, .radio, .tab, .pill,
+.dropdown-trigger, .accordion-trigger, .collapsible-trigger,
+.sort-header, .filter-item, .pagination-item, .breadcrumb-item {
+  cursor: pointer !important;
+  user-select: none;
+}
+
+/* Styles Tailwind override pour supprimer le curseur text */
+.text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl,
+.font-bold, .font-semibold, .font-medium, .font-normal,
+.leading-none, .leading-tight, .leading-snug, .leading-normal,
+.tracking-wide, .tracking-wider, .tracking-widest,
+.uppercase, .lowercase, .capitalize,
+.text-center, .text-left, .text-right, .text-justify,
+.text-white, .text-black, .text-gray-500, .text-gray-600,
+.text-blue-500, .text-red-500, .text-green-500, .text-yellow-500,
+.text-purple-500, .text-pink-500, .text-indigo-500,
+.p-2, .p-3, .p-4, .p-5, .p-6, .px-2, .px-3, .px-4, .py-2, .py-3, .py-4,
+.m-2, .m-3, .m-4, .mx-2, .mx-3, .mx-4, .my-2, .my-3, .my-4,
+.rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-full,
+.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl,
+.border, .border-2, .border-4, .border-gray-300, .border-gray-400,
+.bg-white, .bg-gray-100, .bg-gray-200, .bg-gray-800, .bg-gray-900,
+.flex, .flex-col, .flex-row, .items-center, .justify-center, .justify-between,
+.grid, .grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4,
+.space-x-2, .space-x-3, .space-x-4, .space-y-2, .space-y-3, .space-y-4,
+.gap-2, .gap-3, .gap-4, .gap-6, .gap-8,
+.w-full, .w-auto, .w-fit, .h-full, .h-auto, .h-fit,
+.min-h-screen, .max-w-sm, .max-w-md, .max-w-lg, .max-w-xl,
+.relative, .absolute, .fixed, .sticky, .static,
+.top-0, .bottom-0, .left-0, .right-0, .inset-0,
+.z-10, .z-20, .z-30, .z-40, .z-50,
+.opacity-50, .opacity-75, .opacity-100,
+.transition, .transition-all, .duration-200, .duration-300, .ease-in-out,
+.hover\\:bg-gray-100, .hover\\:bg-gray-200, .hover\\:text-white,
+.focus\\:outline-none, .focus\\:ring-2, .focus\\:ring-blue-500,
+.disabled\\:opacity-50, .disabled\\:cursor-not-allowed {
+  cursor: default !important;
+  user-select: none !important;
+}
+
+/* Override pour les liens et boutons */
+a, button, [role="button"], .btn, .button,
+.cursor-pointer, .hover\\:cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* Override pour les champs de saisie */
+input, textarea, select, [contenteditable="true"],
+.cursor-text, .hover\\:cursor-text {
+  cursor: text !important;
+  user-select: text !important;
 }

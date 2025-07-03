@@ -207,121 +207,34 @@ const DatabaseController = {
     }
   },
 
-  // Réinitialiser tous les utilisateurs
+  // ⚠️ MÉTHODE DANGEREUSE - Réinitialiser tous les utilisateurs
   async resetAllUsers(req, res) {
     try {
-      console.log('🔄 Demande de réinitialisation de tous les utilisateurs par admin:', req.user?.email);
+      console.log(`🚨 RESET ALL USERS demandé par admin: ${req.user.email}`);
       
-      // Vérifier que l'utilisateur est admin
-      if (!req.user || req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Accès refusé. Seuls les administrateurs peuvent réinitialiser les utilisateurs.'
-        });
-      }
-
-      // Exécuter la réinitialisation
+      // Exécuter le script de réinitialisation
       await resetAllUsers();
       
-      // Compter les utilisateurs après réinitialisation
+      // Compter le nombre d'utilisateurs après reset
       const userCount = await User.count();
+      
+      console.log(`✅ Réinitialisation terminée: ${userCount} utilisateur(s) réinitialisé(s)`);
       
       res.json({
         success: true,
         message: 'Tous les utilisateurs ont été réinitialisés avec succès',
         data: {
           usersReset: userCount,
-          resetDetails: {
-            xp: 0,
-            level: 1,
-            streak: 0,
-            totalQuestsCompleted: 0,
-            lastQuestDate: null,
-            avatar: 'default',
-            userQuestsDeleted: true,
-            userAchievementsDeleted: true
-          }
+          resetBy: req.user.email,
+          resetAt: new Date().toISOString()
         }
       });
+      
     } catch (error) {
       console.error('❌ Erreur lors de la réinitialisation des utilisateurs:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la réinitialisation des utilisateurs',
-        error: error.message
-      });
-    }
-  },
-
-  // Récupérer les statistiques globales pour l'admin
-  async getAdminStats(req, res) {
-    try {
-      // Compter les utilisateurs totaux
-      const totalUsers = await User.count();
-      
-      // Compter les utilisateurs actifs (connectés dans les 7 derniers jours)
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      
-      const activeUsers = await User.count({
-        where: {
-          last_login: {
-            [Op.gte]: weekAgo
-          }
-        }
-      });
-      
-      // Compter les quêtes totales
-      const totalQuests = await Quest.count();
-      
-      // Compter les achievements totaux
-      const totalAchievements = await Achievement.count();
-      
-      // Calculer l'XP total distribué
-      const allUsers = await User.findAll({
-        attributes: ['xp']
-      });
-      const totalXpDistributed = allUsers.reduce((sum, user) => sum + user.xp, 0);
-      
-      // Utilisateurs par niveau
-      const usersByLevel = await User.findAll({
-        attributes: ['level'],
-        group: ['level'],
-        raw: true
-      });
-      
-      // Quêtes complétées cette semaine
-      const weeklyQuestsCompleted = await UserQuest.count({
-        where: {
-          is_completed: true,
-          completed_at: {
-            [Op.gte]: weekAgo
-          }
-        }
-      });
-
-      const stats = {
-        totalUsers,
-        activeUsers,
-        totalQuests,
-        totalAchievements,
-        totalXpDistributed,
-        usersByLevel,
-        weeklyQuestsCompleted,
-        generatedAt: new Date().toISOString()
-      };
-
-      res.json({
-        success: true,
-        message: 'Statistiques récupérées avec succès',
-        data: stats
-      });
-
-    } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erreur lors de la récupération des statistiques',
         error: error.message
       });
     }

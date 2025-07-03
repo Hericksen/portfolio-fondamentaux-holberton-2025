@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pixelpump-db
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mdp123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - pixelpump-network
+
+  backend:
+    build: .
+    container_name: pixelpump-backend
+    environment:
+      DB_NAME: portfolio
+      DB_USER: postgres
+      DB_PASS: mdp123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      JWT_SECRET: pixelpump-super-secret-key-2024
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    networks:
+      - pixelpump-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  pixelpump-network:
+    driver: bridge
