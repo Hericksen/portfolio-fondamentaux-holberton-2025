@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { advancedQuestApi } from '../services/api';
-import type { UserQuest, QuestCycle, QuestStats } from '../services/api';
+import type { UserQuest, QuestStats } from '../services/api';
 
 interface UseAdvancedQuestsReturn {
   // Données
@@ -11,7 +11,6 @@ interface UseAdvancedQuestsReturn {
     special: UserQuest[];
   };
   stats: QuestStats | null;
-  cycles: QuestCycle[];
   history: UserQuest[];
   
   // États
@@ -22,7 +21,6 @@ interface UseAdvancedQuestsReturn {
   refreshQuests: () => Promise<void>;
   completeQuest: (questId: string, progress: Record<string, any>) => Promise<boolean>;
   loadHistory: (page?: number) => Promise<void>;
-  loadCycles: () => Promise<void>;
 }
 
 export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
@@ -39,7 +37,6 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
   });
   
   const [stats, setStats] = useState<QuestStats | null>(null);
-  const [cycles, setCycles] = useState<QuestCycle[]>([]);
   const [history, setHistory] = useState<UserQuest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,35 +95,19 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
     }
   }, []);
 
-  // Charger les cycles
-  const loadCycles = useCallback(async () => {
-    try {
-      setError(null);
-      
-      const data = await advancedQuestApi.getActiveCycles();
-      setCycles(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des cycles');
-      console.error('Erreur cycles:', err);
-    }
-  }, []);
-
   // Charger les données initiales
   useEffect(() => {
     refreshQuests();
-    loadCycles();
-  }, [refreshQuests, loadCycles]);
+  }, [refreshQuests]);
 
   return {
     activeQuests,
     stats,
-    cycles,
     history,
     loading,
     error,
     refreshQuests,
     completeQuest,
-    loadHistory,
-    loadCycles
+    loadHistory
   };
 };

@@ -237,10 +237,10 @@ const UserController = {
       const { id } = req.params;
       const { xp } = req.body;
       
-      if (!xp || xp <= 0) {
+      if (!xp || xp <= 0 || xp > 10000) {
         return res.status(400).json({ 
           success: false,
-          message: 'XP invalide' 
+          message: 'XP invalide (doit être entre 1 et 10000)' 
         });
       }
 
@@ -255,6 +255,8 @@ const UserController = {
 
       const oldLevel = user.level;
       const leveledUp = await user.addXp(xp);
+      
+      console.log(`✅ Admin a ajouté ${xp} XP à ${user.username} (${user.xp - xp} → ${user.xp})`);
       
       res.json({
         success: true,

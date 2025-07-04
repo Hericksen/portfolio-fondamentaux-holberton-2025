@@ -67,10 +67,14 @@ const AdminDashboard: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState('');
   const [notification, setNotification] = useState('');
+  const [customXpAmount, setCustomXpAmount] = useState(100);
 
   // States pour les modales de confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [showXpModal, setShowXpModal] = useState(false);
+  const [selectedUserForXp, setSelectedUserForXp] = useState<User | null>(null);
+  const [xpToAdd, setXpToAdd] = useState(100);
   const [deleteModalData, setDeleteModalData] = useState({
     title: '',
     message: '',
@@ -190,6 +194,12 @@ const AdminDashboard: React.FC = () => {
   const handleBulkAction = async () => {
     if (!bulkAction || selectedUsers.length === 0) return;
 
+    // Validation pour l'ajout d'XP
+    if (bulkAction === 'addXp' && (customXpAmount <= 0 || customXpAmount > 10000)) {
+      setNotification('❌ Veuillez saisir un montant d\'XP valide (1-10000)');
+      return;
+    }
+
     // Si c'est une suppression, on affiche la modal de confirmation
     if (bulkAction === 'delete') {
       setDeleteModalData({
@@ -207,7 +217,7 @@ const AdminDashboard: React.FC = () => {
       const promises = selectedUsers.map(userId => {
         switch (bulkAction) {
           case 'addXp':
-            return api.patch(`/users/${userId}/xp`, { xp: 100 });
+            return api.patch(`/users/${userId}/xp`, { xp: customXpAmount });
           case 'resetProgress':
             return api.patch(`/users/${userId}`, { xp: 0, level: 1, streak: 0 });
           default:
@@ -216,7 +226,20 @@ const AdminDashboard: React.FC = () => {
       });
 
       await Promise.all(promises);
-      setNotification(`✅ Action "${bulkAction}" appliquée à ${selectedUsers.length} utilisateur(s)`);
+      
+      let actionMessage = '';
+      switch (bulkAction) {
+        case 'addXp':
+          actionMessage = `${customXpAmount} XP ajoutés`;
+          break;
+        case 'resetProgress':
+          actionMessage = 'Progression réinitialisée';
+          break;
+        default:
+          actionMessage = `Action "${bulkAction}" appliquée`;
+      }
+      
+      setNotification(`✅ ${actionMessage} à ${selectedUsers.length} utilisateur(s)`);
       setSelectedUsers([]);
       setBulkAction('');
       fetchUsers();
@@ -461,6 +484,27 @@ const AdminDashboard: React.FC = () => {
     } catch (error) {
       console.error('Erreur lors de l\'assignation multiple:', error);
       setNotification('❌ Erreur lors de l\'assignation multiple');
+    }
+  };
+
+  const handleAddXpToUser = async () => {
+    if (!selectedUserForXp || xpToAdd <= 0 || xpToAdd > 10000) {
+      setNotification('❌ Veuillez saisir un montant d\'XP valide (1-10000)');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.patch(`/users/${selectedUserForXp.id}/xp`, { xp: xpToAdd });
+      setNotification(`✅ ${xpToAdd} XP ajoutés à ${selectedUserForXp.username}`);
+      setShowXpModal(false);
+      setSelectedUserForXp(null);
+      setXpToAdd(100);
+      fetchUsers();
+    } catch (error) {
+      setNotification('❌ Erreur lors de l\'ajout d\'XP');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -728,10 +772,33 @@ const AdminDashboard: React.FC = () => {
                   }}
                 >
                   <option value="">Choisir une action</option>
-                  <option value="addXp">Ajouter 100 XP</option>
+                  <option value="addXp">Ajouter XP personnalisé</option>
                   <option value="resetProgress">Réinitialiser progression</option>
                   <option value="delete">Bannir les pumpers</option>
                 </select>
+
+                {bulkAction === 'addXp' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ color: '#06ffa5', fontSize: '0.9rem' }}>XP à ajouter:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10000"
+                      value={customXpAmount}
+                      onChange={(e) => setCustomXpAmount(parseInt(e.target.value) || 0)}
+                      style={{
+                        background: 'rgba(26, 0, 51, 0.8)',
+                        border: '2px solid #06ffa5',
+                        color: 'white',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        width: '100px',
+                        textAlign: 'center'
+                      }}
+                      placeholder="XP"
+                    />
+                  </div>
+                )}
 
                 <button
                   onClick={handleBulkAction}
@@ -832,6 +899,25 @@ const AdminDashboard: React.FC = () => {
                         </td>
                         <td style={{ padding: '10px' }}>
                           <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                              onClick={() => {
+                                setSelectedUserForXp(user);
+                                setShowXpModal(true);
+                              }}
+                              style={{
+                                background: 'rgba(6, 255, 165, 0.2)',
+                                border: '1px solid #06ffa5',
+                                color: '#06ffa5',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: '0.8rem',
+                                transition: 'all 0.3s ease'
+                              }}
+                            >
+                              +XP
+                            </button>
                             {user.role !== 'admin' ? (
                               <button
                                 onClick={() => {
@@ -1567,6 +1653,112 @@ const AdminDashboard: React.FC = () => {
         cancelText="Annuler"
         type="danger"
       />
+
+      {/* Modal pour ajouter de l'XP */}
+      {showXpModal && selectedUserForXp && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #0a0014 0%, #1a0033 50%, #0a0014 100%)',
+            borderRadius: '15px',
+            padding: '30px',
+            border: '2px solid #06ffa5',
+            minWidth: '400px',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: '#06ffa5', marginBottom: '20px' }}>
+              💎 Ajouter de l'XP à {selectedUserForXp.username}
+            </h3>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ 
+                display: 'block', 
+                color: '#b8b8b8', 
+                marginBottom: '10px',
+                fontSize: '0.9rem'
+              }}>
+                Montant d'XP à ajouter:
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10000"
+                value={xpToAdd}
+                onChange={(e) => setXpToAdd(parseInt(e.target.value) || 0)}
+                style={{
+                  background: 'rgba(26, 0, 51, 0.8)',
+                  border: '2px solid #06ffa5',
+                  color: 'white',
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  width: '150px',
+                  textAlign: 'center',
+                  fontSize: '1.2rem',
+                  fontWeight: 'bold'
+                }}
+                placeholder="XP"
+                autoFocus
+              />
+              <div style={{ 
+                color: '#b8b8b8', 
+                fontSize: '0.8rem', 
+                marginTop: '5px' 
+              }}>
+                (1 - 10,000 XP)
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button
+                onClick={handleAddXpToUser}
+                disabled={xpToAdd <= 0 || xpToAdd > 10000}
+                style={{
+                  background: xpToAdd > 0 && xpToAdd <= 10000 ? 
+                    'linear-gradient(135deg, #06ffa5, #00cc7a)' : '#666',
+                  border: 'none',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: xpToAdd > 0 && xpToAdd <= 10000 ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold',
+                  fontSize: '1rem'
+                }}
+              >
+                ✅ Ajouter {xpToAdd} XP
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowXpModal(false);
+                  setSelectedUserForXp(null);
+                  setXpToAdd(100);
+                }}
+                style={{
+                  background: 'rgba(255, 0, 110, 0.2)',
+                  border: '2px solid #ff006e',
+                  color: '#ff006e',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                ❌ Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

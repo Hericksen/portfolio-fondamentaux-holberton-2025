@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
 import { QuestCard } from './QuestCard';
-import { CycleOverview } from './CycleOverview';
 import { 
   Sword, 
   Target, 
@@ -11,27 +10,23 @@ import {
   Calendar, 
   RefreshCw,
   AlertCircle,
-  TrendingUp,
-  Clock
+  TrendingUp
 } from 'lucide-react';
 
 export const AdvancedQuestsDashboard: React.FC = () => {
   const {
     activeQuests,
     stats,
-    cycles,
     loading,
     error,
     refreshQuests,
-    completeQuest,
-    loadCycles
+    completeQuest
   } = useAdvancedQuests();
 
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly' | 'all'>('all');
 
   const handleRefresh = async () => {
     await refreshQuests();
-    await loadCycles();
   };
 
   const getQuestsForTab = () => {
@@ -164,29 +159,8 @@ export const AdvancedQuestsDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="pixel-card" style={{
-            background: 'rgba(26, 0, 51, 0.8)',
-            border: '2px solid #8338ec',
-            boxShadow: '0 8px 32px rgba(131, 56, 236, 0.3)',
-            borderRadius: '15px',
-            padding: '20px'
-          }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold pixel-level" style={{ 
-                  fontSize: '2rem',
-                  color: '#8338ec'
-                }}>{cycles.length}</div>
-                <div className="text-sm font-mono" style={{ color: '#9d4edd' }}>Cycles actifs</div>
-              </div>
-              <Clock className="w-8 h-8" style={{ color: '#8338ec' }} />
-            </div>
-          </div>
         </div>
       )}
-
-      {/* Cycles actifs */}
-      <CycleOverview cycles={cycles} />
 
       {/* Onglets des quêtes */}
       <div className="pixel-card" style={{

@@ -154,7 +154,10 @@ const AdvancedQuestController = {
     try {
       const { questId } = req.params;
       const userId = req.user.userId;
-      const { progress_data } = req.body;
+      const { progress_data, progress } = req.body;
+      
+      // Accepter soit progress_data soit progress pour plus de flexibilité
+      const progressInfo = progress_data || progress;
 
       const userQuest = await UserQuest.findOne({
         where: {
@@ -191,7 +194,7 @@ const AdvancedQuestController = {
       await userQuest.update({
         is_completed: true,
         completed_at: new Date(),
-        progress: progress_data || { completed: true },
+        progress: progressInfo || { completed: true },
         streak_bonus: streakBonus,
         bonus_xp: streakBonus
       });
@@ -441,9 +444,22 @@ const AdvancedQuestController = {
     }
   },
 
-  async checkAchievements(userId) {
+  async updateUserStreak(userId) {
+    try {
+      const user = await User.findByPk(userId);
+      if (user) {
+        // Incrémenter le streak de 1 pour une quête quotidienne complétée
+        await user.increment('streak', { by: 1 });
+        console.log(`📈 Streak mis à jour pour l'utilisateur ${userId}: ${user.streak + 1}`);
+      }
+    } catch (error) {
+      console.error('Erreur updateUserStreak:', error);
+    }
+  },
+
+  async checkQuestAchievements(userId) {
     // À implémenter selon les besoins spécifiques
-    console.log(`🏆 Vérification des achievements pour l'utilisateur ${userId}`);
+    console.log(`🏆 Vérification des quest achievements pour l'utilisateur ${userId}`);
   }
 };
 

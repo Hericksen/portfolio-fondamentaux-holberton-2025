@@ -79,8 +79,8 @@ const QuestModal: React.FC<QuestModalProps> = ({
       newErrors.description = 'La description est requise';
     }
 
-    if (formData.xp_reward <= 0) {
-      newErrors.xp_reward = 'La récompense XP doit être positive';
+    if (formData.xp_reward <= 0 || formData.xp_reward > 10000) {
+      newErrors.xp_reward = 'La récompense XP doit être entre 1 et 10000';
     }
 
     setErrors(newErrors);
@@ -281,7 +281,7 @@ const QuestModal: React.FC<QuestModalProps> = ({
                 value={formData.xp_reward}
                 onChange={handleChange}
                 min="1"
-                max="1000"
+                max="10000"
                 style={{
                   width: '100%',
                   padding: '10px',

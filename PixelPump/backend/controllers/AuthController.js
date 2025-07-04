@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const UserService = require('../services/UserService');
+const DemoQuestService = require('../services/DemoQuestService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -111,6 +112,23 @@ const AuthController = {
       // S'assurer que le profil est complet (pour les anciens utilisateurs)
       user.initializeProfile();
       await user.save();
+
+      // Debug: vérifier les détails de l'utilisateur
+      console.log(`🔍 Debug connexion - Username: ${user.username}, Email: ${user.email}`);
+
+      // Assigner des quêtes aléatoires pour les comptes démo
+      if (user.username === 'testuser' || user.username === 'admin') {
+        try {
+          console.log(`🎯 Assignation de quêtes aléatoires pour le compte démo: ${user.username}`);
+          await DemoQuestService.assignRandomQuestsForDemo(user.id, user.email);
+          console.log(`✅ Quêtes démo assignées avec succès`);
+        } catch (questError) {
+          console.error('Erreur lors de l\'assignation des quêtes démo:', questError);
+          // On continue même si l'assignation des quêtes échoue
+        }
+      } else {
+        console.log(`ℹ️  Utilisateur non-démo détecté: ${user.username}, pas d'assignation de quêtes`);
+      }
 
       // Générer le token JWT
       const token = jwt.sign(
