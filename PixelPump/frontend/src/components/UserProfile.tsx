@@ -5,6 +5,8 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { PixelAvatar } from './PixelAvatar';
+import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
+import { Target, TrendingUp, Trophy } from 'lucide-react';
 import api from '../services/api';
 
 interface UserProfile {
@@ -48,6 +50,9 @@ export const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Hook pour récupérer les statistiques des quêtes
+  const { stats: questStats } = useAdvancedQuests();
   const [editData, setEditData] = useState({
     username: '',
     avatar: {
@@ -191,30 +196,65 @@ export const UserProfile: React.FC = () => {
               </div>
               <Progress value={calculateXpProgress()} className="h-3" />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {profile.stats.total_quests_completed}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+              {/* Quêtes actives */}
+              <div className="pixel-card" style={{
+                background: 'rgba(26, 0, 51, 0.8)',
+                border: '2px solid #ff006e',
+                boxShadow: '0 8px 32px rgba(255, 0, 110, 0.3)',
+                borderRadius: '15px',
+                padding: '16px'
+              }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xl font-bold pixel-level" style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ff006e'
+                    }}>{questStats?.total_active || 0}</div>
+                    <div className="text-xs font-mono" style={{ color: '#9d4edd' }}>Quêtes actives</div>
+                  </div>
+                  <Target className="w-6 h-6" style={{ color: '#ff006e' }} />
                 </div>
-                <div className="text-sm text-gray-600">Quêtes Terminées</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {profile.stats.total_achievements_unlocked}
+
+              {/* Taux de completion */}
+              <div className="pixel-card" style={{
+                background: 'rgba(26, 0, 51, 0.8)',
+                border: '2px solid #06ffa5',
+                boxShadow: '0 8px 32px rgba(6, 255, 165, 0.3)',
+                borderRadius: '15px',
+                padding: '16px'
+              }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xl font-bold pixel-level" style={{ 
+                      fontSize: '1.5rem',
+                      color: '#06ffa5'
+                    }}>{questStats?.completion_rate || 0}%</div>
+                    <div className="text-xs font-mono" style={{ color: '#9d4edd' }}>Taux completion</div>
+                  </div>
+                  <TrendingUp className="w-6 h-6" style={{ color: '#06ffa5' }} />
                 </div>
-                <div className="text-sm text-gray-600">Succès Débloqués</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {profile.stats.best_streak}
+
+              {/* Série actuelle */}
+              <div className="pixel-card" style={{
+                background: 'rgba(26, 0, 51, 0.8)',
+                border: '2px solid #ffbe0b',
+                boxShadow: '0 8px 32px rgba(255, 190, 11, 0.3)',
+                borderRadius: '15px',
+                padding: '16px'
+              }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xl font-bold pixel-level flex items-center gap-1" style={{ 
+                      fontSize: '1.5rem',
+                      color: '#ffbe0b'
+                    }}>🔥 {questStats?.current_streak || 0}</div>
+                    <div className="text-xs font-mono" style={{ color: '#9d4edd' }}>Série actuelle</div>
+                  </div>
+                  <Trophy className="w-6 h-6" style={{ color: '#ffbe0b' }} />
                 </div>
-                <div className="text-sm text-gray-600">Meilleure Série</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {profile.stats.total_xp_earned}
-                </div>
-                <div className="text-sm text-gray-600">XP Total</div>
               </div>
             </div>
           </div>

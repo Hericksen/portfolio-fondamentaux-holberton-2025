@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
-import { advancedQuestApi } from '../services/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -13,53 +12,6 @@ function Dashboard() {
   const handleLogout = () => {
     logout();
     navigate('/login');
-  };
-
-  const handleResetAllQuests = async () => {
-    if (!authUser || authUser.role !== 'admin') {
-      alert('❌ Accès non autorisé - Administrateur requis');
-      return;
-    }
-
-    const confirmed = window.confirm(
-      '⚠️ ATTENTION ! ⚠️\n\n' +
-      'Vous êtes sur le point de SUPPRIMER TOUTES les quêtes de TOUS les utilisateurs.\n' +
-      'Cette action est IRRÉVERSIBLE !\n\n' +
-      'Voulez-vous vraiment continuer ?'
-    );
-
-    if (!confirmed) return;
-
-    const doubleConfirm = window.confirm(
-      '🔥 DERNIÈRE CONFIRMATION 🔥\n\n' +
-      'Êtes-vous ABSOLUMENT SÛR(E) de vouloir réinitialiser toutes les quêtes ?\n' +
-      'Toutes les progressions en cours seront perdues !'
-    );
-
-    if (!doubleConfirm) return;
-
-    try {
-      console.log('🔄 Réinitialisation des quêtes en cours...');
-      const result = await advancedQuestApi.resetAllUserQuests();
-      
-      if (result.success) {
-        alert(
-          '✅ RÉINITIALISATION RÉUSSIE !\n\n' +
-          `• ${result.data.deleted_quests} quêtes supprimées\n` +
-          `• ${result.data.deleted_cycles} cycles supprimés\n` +
-          `• Effectué par: ${result.data.reset_by}\n` +
-          `• À: ${new Date(result.data.reset_at).toLocaleString('fr-FR')}`
-        );
-        
-        // Rafraîchir la page pour voir les changements
-        window.location.reload();
-      } else {
-        alert('❌ Erreur: ' + result.message);
-      }
-    } catch (error) {
-      console.error('Erreur lors de la réinitialisation:', error);
-      alert('❌ Erreur lors de la réinitialisation des quêtes: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
-    }
   };
 
   if (loading) {
@@ -221,37 +173,6 @@ function Dashboard() {
                 }}>
                   👑 Admin
                 </Link>
-                <button
-                  onClick={handleResetAllQuests}
-                  style={{
-                    background: 'transparent',
-                    border: '2px solid #ff6b6b',
-                    color: '#ff6b6b',
-                    padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
-                    borderRadius: '25px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    transition: 'all 0.3s ease',
-                    fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseOver={(e) => {
-                    (e.target as HTMLButtonElement).style.background = '#ff6b6b';
-                    (e.target as HTMLButtonElement).style.color = 'white';
-                    (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
-                    (e.target as HTMLButtonElement).style.boxShadow = '0 5px 15px rgba(255, 107, 107, 0.4)';
-                  }}
-                  onMouseOut={(e) => {
-                    (e.target as HTMLButtonElement).style.background = 'transparent';
-                    (e.target as HTMLButtonElement).style.color = '#ff6b6b';
-                    (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
-                    (e.target as HTMLButtonElement).style.boxShadow = 'none';
-                  }}
-                  title="⚠️ DANGER: Réinitialiser toutes les quêtes de tous les utilisateurs"
-                >
-                  🔄 Reset Quêtes
-                </button>
               </>
             )}
             <button
@@ -543,18 +464,6 @@ function Dashboard() {
             backdropFilter: 'blur(15px)',
             boxShadow: '0 8px 32px rgba(255, 0, 110, 0.2)'
           }}>
-            <h2 style={{
-              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-              fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #ff006e, #8338ec)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textAlign: 'center',
-              marginBottom: '20px',
-              textShadow: '0 0 20px rgba(255, 0, 110, 0.3)'
-            }}>
-              🎯 Mes Quêtes Actives
-            </h2>
             <AdvancedQuestsDashboard />
           </div>
         </section>

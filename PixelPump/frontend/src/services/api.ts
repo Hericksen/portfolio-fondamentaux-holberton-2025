@@ -130,11 +130,5 @@ export const advancedQuestApi = {
   forceAssignQuests: async () => {
     const response = await api.post('/advanced-quests/admin/force-assign');
     return response.data;
-  },
-
-  // Réinitialiser toutes les quêtes de tous les utilisateurs (admin uniquement)
-  resetAllUserQuests: async () => {
-    const response = await api.post('/advanced-quests/admin/reset-all-quests');
-    return response.data;
   }
 };

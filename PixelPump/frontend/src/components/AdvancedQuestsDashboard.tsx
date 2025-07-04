@@ -9,8 +9,7 @@ import {
   Trophy, 
   Calendar, 
   RefreshCw,
-  AlertCircle,
-  TrendingUp
+  AlertCircle
 } from 'lucide-react';
 
 export const AdvancedQuestsDashboard: React.FC = () => {
@@ -30,15 +29,51 @@ export const AdvancedQuestsDashboard: React.FC = () => {
   };
 
   const getQuestsForTab = () => {
+    let quests;
     if (activeTab === 'all') {
-      return [
+      quests = [
         ...activeQuests.daily,
         ...activeQuests.weekly,
         ...activeQuests.monthly,
         ...activeQuests.special
       ];
+    } else {
+      quests = activeQuests[activeTab] || [];
     }
-    return activeQuests[activeTab] || [];
+    
+    // Définir l'ordre de difficulté (du plus simple au plus dur)
+    const difficultyOrder = {
+      'easy': 1,
+      'medium': 2,
+      'hard': 3,
+      'epic': 4
+    };
+    
+    // Trier les quêtes par difficulté croissante
+    const sortedQuests = quests.sort((a, b) => {
+      const difficultyA = difficultyOrder[a.quest.difficulty as keyof typeof difficultyOrder] || 5;
+      const difficultyB = difficultyOrder[b.quest.difficulty as keyof typeof difficultyOrder] || 5;
+      return difficultyA - difficultyB;
+    });
+    
+    // Limiter à 9 quêtes maximum
+    return sortedQuests.slice(0, 9);
+  };
+
+  const getTotalQuestsForTab = () => {
+    let quests;
+    if (activeTab === 'all') {
+      quests = [
+        ...activeQuests.daily,
+        ...activeQuests.weekly,
+        ...activeQuests.monthly,
+        ...activeQuests.special
+      ];
+    } else {
+      quests = activeQuests[activeTab] || [];
+    }
+    
+    return quests.length;
   };
 
   const tabLabels = {
@@ -57,33 +92,6 @@ export const AdvancedQuestsDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 pixel-title neon-text">
-            <Target className="w-6 h-6" style={{ color: '#ff006e' }} />
-            Mes Missions
-          </h1>
-          <p className="font-mono mt-1" style={{ color: '#9d4edd' }}>
-            Progresse à ton rythme et gagne de l'XP !
-          </p>
-        </div>
-        
-        <Button 
-          onClick={handleRefresh} 
-          disabled={loading}
-          className="cyberpunk-btn pixel-btn font-pixel"
-          style={{
-            background: 'transparent',
-            border: '2px solid #8338ec',
-            color: '#8338ec'
-          }}
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Actualiser
-        </Button>
-      </div>
-
       {/* Erreur */}
       {error && (
         <div className="pixel-card" style={{
@@ -99,69 +107,6 @@ export const AdvancedQuestsDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Statistiques globales */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="pixel-card" style={{
-            background: 'rgba(26, 0, 51, 0.8)',
-            border: '2px solid #ff006e',
-            boxShadow: '0 8px 32px rgba(255, 0, 110, 0.3)',
-            borderRadius: '15px',
-            padding: '20px'
-          }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold pixel-level" style={{ 
-                  fontSize: '2rem',
-                  color: '#ff006e'
-                }}>{stats.total_active}</div>
-                <div className="text-sm font-mono" style={{ color: '#9d4edd' }}>Quêtes actives</div>
-              </div>
-              <Target className="w-8 h-8" style={{ color: '#ff006e' }} />
-            </div>
-          </div>
-
-          <div className="pixel-card" style={{
-            background: 'rgba(26, 0, 51, 0.8)',
-            border: '2px solid #06ffa5',
-            boxShadow: '0 8px 32px rgba(6, 255, 165, 0.3)',
-            borderRadius: '15px',
-            padding: '20px'
-          }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold pixel-level" style={{ 
-                  fontSize: '2rem',
-                  color: '#06ffa5'
-                }}>{stats.completion_rate}%</div>
-                <div className="text-sm font-mono" style={{ color: '#9d4edd' }}>Taux completion</div>
-              </div>
-              <TrendingUp className="w-8 h-8" style={{ color: '#06ffa5' }} />
-            </div>
-          </div>
-
-          <div className="pixel-card" style={{
-            background: 'rgba(26, 0, 51, 0.8)',
-            border: '2px solid #ffbe0b',
-            boxShadow: '0 8px 32px rgba(255, 190, 11, 0.3)',
-            borderRadius: '15px',
-            padding: '20px'
-          }}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold pixel-level flex items-center gap-1" style={{ 
-                  fontSize: '2rem',
-                  color: '#ffbe0b'
-                }}>🔥 {stats.current_streak}</div>
-                <div className="text-sm font-mono" style={{ color: '#9d4edd' }}>Série actuelle</div>
-              </div>
-              <Trophy className="w-8 h-8" style={{ color: '#ffbe0b' }} />
-            </div>
-          </div>
-
-        </div>
-      )}
-
       {/* Onglets des quêtes */}
       <div className="pixel-card" style={{
         background: 'rgba(26, 0, 51, 0.8)',
@@ -170,14 +115,45 @@ export const AdvancedQuestsDashboard: React.FC = () => {
         borderRadius: '15px',
         padding: '25px'
       }}>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="pixel-title" style={{ 
+        <div className="flex flex-col items-center justify-center mb-6 gap-4">
+          <h3 className="pixel-title glowing-title text-center w-full" style={{ 
             color: '#ff006e', 
-            fontSize: '1.4rem',
-            fontWeight: 'bold'
-          }}>Mes Quêtes</h3>
+            fontSize: '1.6rem',
+            fontWeight: 'bold',
+            textShadow: '0 0 10px #ff006e, 0 0 20px #ff006e, 0 0 30px #ff006e',
+            animation: 'glow 2s ease-in-out infinite alternate',
+            textAlign: 'center'
+          }}>✨ Mes Missions ✨</h3>
           
-          <div className="flex gap-1">
+          {/* Indicateur de tri */}
+          <div className="text-center mb-2" style={{
+            color: '#9d4edd',
+            fontSize: '0.85rem',
+            fontFamily: 'monospace',
+            opacity: 0.8
+          }}>
+            📊 Triées par difficulté : Easy → Medium → Hard → Epic
+          </div>
+          
+          <div className="flex items-center justify-center w-full">
+            <Button 
+              onClick={handleRefresh} 
+              disabled={loading}
+              className="cyberpunk-btn pixel-btn font-pixel"
+              size="sm"
+              style={{
+                background: 'transparent',
+                border: '2px solid #8338ec',
+                color: '#8338ec',
+                fontSize: '0.75rem'
+              }}
+            >
+              <RefreshCw className={`w-3 h-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              Actualiser
+            </Button>
+          </div>
+          
+          <div className="quest-tabs-container justify-center">
             {Object.entries(tabLabels).map(([key, label]) => {
               const Icon = tabIcons[key as keyof typeof tabIcons];
               const isActive = activeTab === key;
@@ -190,18 +166,22 @@ export const AdvancedQuestsDashboard: React.FC = () => {
                   key={key}
                   size="sm"
                   onClick={() => setActiveTab(key as typeof activeTab)}
-                  className={`flex items-center gap-1 cyberpunk-btn pixel-btn font-pixel ${
+                  className={`flex items-center gap-1 cyberpunk-btn pixel-btn font-pixel text-xs sm:text-sm ${
                     isActive ? 'active' : ''
                   }`}
                   style={{
                     background: isActive ? 'rgba(255, 0, 110, 0.2)' : 'transparent',
                     border: `2px solid ${isActive ? '#ff006e' : '#8338ec'}`,
                     color: isActive ? '#ff006e' : '#8338ec',
-                    fontSize: '0.8rem'
+                    fontSize: '0.75rem',
+                    padding: '6px 10px',
+                    minWidth: 'auto',
+                    flexShrink: 0
                   }}
                 >
-                  <Icon className="w-4 h-4" />
-                  {label}
+                  <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">{label}</span>
+                  <span className="sm:hidden">{label === 'Quotidiennes' ? 'Jour' : label === 'Hebdomadaires' ? 'Sem' : label === 'Mensuelles' ? 'Mois' : label}</span>
                   {count > 0 && (
                     <Badge 
                       className="ml-1 text-xs pixel-badge-enhanced"
@@ -209,7 +189,8 @@ export const AdvancedQuestsDashboard: React.FC = () => {
                         background: 'rgba(255, 190, 11, 0.2)',
                         border: '1px solid #ffbe0b',
                         color: '#ffbe0b',
-                        fontSize: '0.7rem'
+                        fontSize: '0.6rem',
+                        padding: '1px 4px'
                       }}
                     >
                       {count}
@@ -228,7 +209,7 @@ export const AdvancedQuestsDashboard: React.FC = () => {
               <span className="font-mono" style={{ color: '#9d4edd' }}>Chargement des quêtes...</span>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="quests-grid">
               {getQuestsForTab().map((quest) => (
                 <QuestCard
                   key={quest.id}
@@ -236,6 +217,22 @@ export const AdvancedQuestsDashboard: React.FC = () => {
                   onComplete={completeQuest}
                 />
               ))}
+            </div>
+          )}
+          
+          {/* Indicateur s'il y a plus de 9 quêtes */}
+          {!loading && getTotalQuestsForTab() > 9 && (
+            <div className="text-center mt-4" style={{
+              background: 'rgba(255, 0, 110, 0.1)',
+              borderRadius: '10px',
+              border: '1px solid rgba(255, 0, 110, 0.3)',
+              padding: '12px',
+              color: '#ff006e'
+            }}>
+              <span className="font-mono text-sm">
+                ✨ {getTotalQuestsForTab() - 9} missions supplémentaires disponibles ! 
+                Complétez celles-ci pour débloquer les suivantes.
+              </span>
             </div>
           )}
 

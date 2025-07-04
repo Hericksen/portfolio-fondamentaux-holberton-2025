@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -54,6 +55,11 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  // Définir le titre de l'application
+  useEffect(() => {
+    document.title = 'Pixel Pump';
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

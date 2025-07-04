@@ -315,53 +315,6 @@ const AdvancedQuestController = {
 
   // === MÉTHODES ADMIN ===
 
-  // Réinitialiser toutes les quêtes de tous les utilisateurs (méthode admin/debug)
-  async resetAllUserQuests(req, res) {
-    try {
-      const userId = req.user.userId;
-      
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Accès non autorisé - Administrateur requis'
-        });
-      }
-
-      console.log(`🔄 Admin ${userId} réinitialise toutes les quêtes utilisateurs`);
-
-      // Supprimer toutes les quêtes utilisateur existantes
-      const deletedQuests = await UserQuest.destroy({
-        where: {}
-      });
-
-      // Supprimer tous les cycles existants
-      const deletedCycles = await QuestCycle.destroy({
-        where: {}
-      });
-
-      console.log(`✅ ${deletedQuests} quêtes supprimées, ${deletedCycles} cycles supprimés`);
-
-      res.json({
-        success: true,
-        message: 'Toutes les quêtes utilisateurs ont été réinitialisées',
-        data: {
-          deleted_quests: deletedQuests,
-          deleted_cycles: deletedCycles,
-          reset_by: req.user.username,
-          reset_at: new Date().toISOString()
-        }
-      });
-
-    } catch (error) {
-      console.error('Erreur resetAllUserQuests:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erreur lors de la réinitialisation des quêtes',
-        error: error.message
-      });
-    }
-  },
-
   // Obtenir des statistiques admin sur les quêtes
   async getAdminStats(req, res) {
     try {
