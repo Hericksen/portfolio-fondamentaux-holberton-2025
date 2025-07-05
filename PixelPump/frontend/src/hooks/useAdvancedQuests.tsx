@@ -100,6 +100,44 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
     refreshQuests();
   }, [refreshQuests]);
 
+  // Timer pour mettre à jour les temps restants des quêtes toutes les secondes
+  useEffect(() => {
+    const updateTimers = () => {
+      setActiveQuests(current => {
+        const now = new Date().getTime();
+        
+        const updateQuestTimers = (quests: UserQuest[]) => {
+          return quests.map(quest => {
+            if (!quest.expires_at) return quest;
+            
+            const expirationTime = new Date(quest.expires_at).getTime();
+            const diffMs = Math.max(0, expirationTime - now);
+            
+            return {
+              ...quest,
+              time_remaining: diffMs // Stocker en millisecondes pour plus de précision
+            };
+          });
+        };
+
+        return {
+          daily: updateQuestTimers(current.daily),
+          weekly: updateQuestTimers(current.weekly),
+          monthly: updateQuestTimers(current.monthly),
+          special: updateQuestTimers(current.special)
+        };
+      });
+    };
+
+    // Mettre à jour immédiatement
+    updateTimers();
+    
+    // Puis toutes les secondes
+    const interval = setInterval(updateTimers, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return {
     activeQuests,
     stats,

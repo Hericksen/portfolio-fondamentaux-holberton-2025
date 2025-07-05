@@ -91,6 +91,14 @@ const AdminDashboard: React.FC = () => {
   const [showDeleteAchievementModal, setShowDeleteAchievementModal] = useState(false);
   const [achievementToDelete, setAchievementToDelete] = useState<Achievement | null>(null);
 
+  // States pour le tri et filtrage des quêtes
+  const [questSortBy, setQuestSortBy] = useState<'title' | 'difficulty' | 'xp_reward' | 'category' | 'type'>('title');
+  const [questSortOrder, setQuestSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [questFilterCategory, setQuestFilterCategory] = useState<string>('all');
+  const [questFilterDifficulty, setQuestFilterDifficulty] = useState<string>('all');
+  const [questFilterType, setQuestFilterType] = useState<string>('all');
+  const [questSearchQuery, setQuestSearchQuery] = useState<string>('');
+
   // Vérifier si l'utilisateur est admin
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -396,6 +404,77 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fonctions de tri et filtrage des quêtes
+  const getFilteredAndSortedQuests = () => {
+    let filteredQuests = [...quests];
+
+    // Filtrer par recherche textuelle
+    if (questSearchQuery.trim()) {
+      filteredQuests = filteredQuests.filter(quest =>
+        quest.title.toLowerCase().includes(questSearchQuery.toLowerCase()) ||
+        quest.description.toLowerCase().includes(questSearchQuery.toLowerCase())
+      );
+    }
+
+    // Filtrer par catégorie
+    if (questFilterCategory !== 'all') {
+      filteredQuests = filteredQuests.filter(quest => quest.category === questFilterCategory);
+    }
+
+    // Filtrer par difficulté
+    if (questFilterDifficulty !== 'all') {
+      filteredQuests = filteredQuests.filter(quest => quest.difficulty === questFilterDifficulty);
+    }
+
+    // Filtrer par type
+    if (questFilterType !== 'all') {
+      filteredQuests = filteredQuests.filter(quest => quest.type === questFilterType);
+    }
+
+    // Trier
+    filteredQuests.sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (questSortBy) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'difficulty':
+          const difficultyOrder = { 'easy': 1, 'medium': 2, 'hard': 3, 'epic': 4 };
+          aValue = difficultyOrder[a.difficulty as keyof typeof difficultyOrder] || 0;
+          bValue = difficultyOrder[b.difficulty as keyof typeof difficultyOrder] || 0;
+          break;
+        case 'xp_reward':
+          aValue = a.xp_reward;
+          bValue = b.xp_reward;
+          break;
+        case 'category':
+          aValue = a.category.toLowerCase();
+          bValue = b.category.toLowerCase();
+          break;
+        case 'type':
+          aValue = a.type.toLowerCase();
+          bValue = b.type.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (questSortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filteredQuests;
+  };
+
+  const getUniqueValues = (key: keyof Quest) => {
+    return [...new Set(quests.map(quest => quest[key]))].sort();
   };
 
   if (!user || user.role !== 'admin') {
@@ -891,7 +970,7 @@ const AdminDashboard: React.FC = () => {
               alignItems: 'center',
               marginBottom: '20px'
             }}>
-              <h3 style={{ color: '#06ffa5', margin: 0 }}>⚔️ Gestion des quêtes</h3>
+              <h3 style={{ color: '#06ffa5', margin: 0 }}>⚔️ Gestion des quêtes ({quests.length} total)</h3>
               <button
                 onClick={handleCreateQuest}
                 style={{
@@ -909,97 +988,353 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
+            {/* Contrôles de recherche et filtrage */}
+            <div style={{
+              background: 'rgba(26, 0, 51, 0.4)',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '20px',
+              border: '1px solid rgba(6, 255, 165, 0.3)'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
+                {/* Recherche */}
+                <div>
+                  <label style={{ display: 'block', color: '#06ffa5', fontSize: '0.9rem', marginBottom: '5px' }}>
+                    🔍 Rechercher
+                  </label>
+                  <input
+                    type="text"
+                    value={questSearchQuery}
+                    onChange={(e) => setQuestSearchQuery(e.target.value)}
+                    placeholder="Titre ou description..."
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: 'white',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                </div>
+
+                {/* Filtre par catégorie */}
+                <div>
+                  <label style={{ display: 'block', color: '#06ffa5', fontSize: '0.9rem', marginBottom: '5px' }}>
+                    📂 Catégorie
+                  </label>
+                  <select
+                    value={questFilterCategory}
+                    onChange={(e) => setQuestFilterCategory(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: 'white',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <option value="all">Toutes les catégories</option>
+                    {getUniqueValues('category').map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filtre par difficulté */}
+                <div>
+                  <label style={{ display: 'block', color: '#06ffa5', fontSize: '0.9rem', marginBottom: '5px' }}>
+                    ⚡ Difficulté
+                  </label>
+                  <select
+                    value={questFilterDifficulty}
+                    onChange={(e) => setQuestFilterDifficulty(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: 'white',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <option value="all">Toutes les difficultés</option>
+                    <option value="easy">Facile</option>
+                    <option value="medium">Moyen</option>
+                    <option value="hard">Difficile</option>
+                    <option value="epic">Épique</option>
+                  </select>
+                </div>
+
+                {/* Filtre par type */}
+                <div>
+                  <label style={{ display: 'block', color: '#06ffa5', fontSize: '0.9rem', marginBottom: '5px' }}>
+                    📅 Type
+                  </label>
+                  <select
+                    value={questFilterType}
+                    onChange={(e) => setQuestFilterType(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: 'white',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <option value="all">Tous les types</option>
+                    {getUniqueValues('type').map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Contrôles de tri */}
+              <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <label style={{ color: '#06ffa5', fontSize: '0.9rem' }}>
+                    📊 Trier par:
+                  </label>
+                  <select
+                    value={questSortBy}
+                    onChange={(e) => setQuestSortBy(e.target.value as any)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: 'white',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    <option value="title">Titre</option>
+                    <option value="difficulty">Difficulté</option>
+                    <option value="xp_reward">XP</option>
+                    <option value="category">Catégorie</option>
+                    <option value="type">Type</option>
+                  </select>
+                  <button
+                    onClick={() => setQuestSortOrder(questSortOrder === 'asc' ? 'desc' : 'asc')}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #06ffa5',
+                      background: 'rgba(6, 255, 165, 0.1)',
+                      color: '#06ffa5',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    {questSortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
+                  </button>
+                </div>
+                <div style={{ color: '#b8b8b8', fontSize: '0.9rem' }}>
+                  {getFilteredAndSortedQuests().length} quête(s) affichée(s)
+                </div>
+                <button
+                  onClick={() => {
+                    setQuestSearchQuery('');
+                    setQuestFilterCategory('all');
+                    setQuestFilterDifficulty('all');
+                    setQuestFilterType('all');
+                    setQuestSortBy('title');
+                    setQuestSortOrder('asc');
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #8338ec',
+                    background: 'rgba(131, 56, 236, 0.1)',
+                    color: '#8338ec',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  🔄 Réinitialiser
+                </button>
+              </div>
+            </div>
+
             <div style={{
               background: 'rgba(26, 0, 51, 0.6)',
               borderRadius: '15px',
               padding: '25px',
               border: '2px solid #06ffa5'
             }}>
-              <div style={{ display: 'grid', gap: '15px' }}>
-                {quests.map(quest => (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {getFilteredAndSortedQuests().map((quest, index) => (
                   <div key={quest.id} style={{
                     background: 'rgba(6, 255, 165, 0.1)',
                     border: '1px solid #06ffa5',
-                    borderRadius: '10px',
-                    padding: '20px'
+                    borderRadius: '12px',
+                    padding: '20px',
+                    position: 'relative',
+                    transition: 'all 0.3s ease'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ color: '#06ffa5', margin: '0 0 5px 0' }}>{quest.title}</h4>
-                        <p style={{ color: '#b8b8b8', margin: '0', fontSize: '0.9rem' }}>{quest.description}</p>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ textAlign: 'right' }}>
+                    {/* Numéro de la quête */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '10px',
+                      background: 'rgba(6, 255, 165, 0.2)',
+                      color: '#06ffa5',
+                      padding: '4px 8px',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}>
+                      #{index + 1}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px', marginTop: '25px' }}>
+                      <div style={{ flex: 1, paddingRight: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                          <h4 style={{ color: '#06ffa5', margin: 0, fontSize: '1.1rem' }}>{quest.title}</h4>
                           <div style={{
                             background: getDifficultyColor(quest.difficulty),
                             color: 'white',
-                            padding: '4px 8px',
+                            padding: '3px 8px',
                             borderRadius: '12px',
                             fontSize: '0.7rem',
-                            fontWeight: 'bold',
-                            marginBottom: '5px'
+                            fontWeight: 'bold'
                           }}>
                             {quest.difficulty.toUpperCase()}
                           </div>
-                          <div style={{ color: '#06ffa5', fontWeight: 'bold' }}>
-                            +{quest.xp_reward} XP
-                          </div>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          <button
-                            onClick={() => handleEditQuest(quest)}
-                            style={{
-                              background: 'rgba(131, 56, 236, 0.2)',
-                              border: '1px solid #8338ec',
-                              color: '#8338ec',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem'
-                            }}
-                          >
-                            ✏️ Modifier
-                          </button>
-                          <button
-                            onClick={() => handleDeleteQuestClick(quest)}
-                            style={{
-                              background: 'rgba(255, 23, 68, 0.2)',
-                              border: '1px solid #ff1744',
-                              color: '#ff1744',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '0.8rem'
-                            }}
-                          >
-                            🗑️ Supprimer
-                          </button>
+                        <p style={{ 
+                          color: '#b8b8b8', 
+                          margin: '0 0 12px 0', 
+                          fontSize: '0.9rem',
+                          lineHeight: '1.4'
+                        }}>
+                          {quest.description}
+                        </p>
+                        
+                        {/* Badges d'information */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            background: 'rgba(131, 56, 236, 0.3)',
+                            color: '#8338ec',
+                            padding: '4px 10px',
+                            borderRadius: '15px',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold'
+                          }}>
+                            📂 {quest.category}
+                          </span>
+                          <span style={{
+                            background: 'rgba(255, 0, 110, 0.3)',
+                            color: '#ff006e',
+                            padding: '4px 10px',
+                            borderRadius: '15px',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold'
+                          }}>
+                            📅 {quest.type}
+                          </span>
+                          <span style={{
+                            background: 'rgba(6, 255, 165, 0.3)',
+                            color: '#06ffa5',
+                            padding: '4px 10px',
+                            borderRadius: '15px',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold'
+                          }}>
+                            ⭐ +{quest.xp_reward} XP
+                          </span>
                         </div>
                       </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '10px', fontSize: '0.8rem' }}>
-                      <span style={{
-                        background: 'rgba(131, 56, 236, 0.3)',
-                        color: '#8338ec',
-                        padding: '2px 8px',
-                        borderRadius: '12px'
-                      }}>
-                        📂 {quest.category}
-                      </span>
-                      <span style={{
-                        background: 'rgba(255, 0, 110, 0.3)',
-                        color: '#ff006e',
-                        padding: '2px 8px',
-                        borderRadius: '12px'
-                      }}>
-                        📅 {quest.type}
-                      </span>
+                      
+                      {/* Boutons d'action */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '120px' }}>
+                        <button
+                          onClick={() => handleEditQuest(quest)}
+                          style={{
+                            background: 'rgba(131, 56, 236, 0.2)',
+                            border: '1px solid #8338ec',
+                            color: '#8338ec',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontWeight: 'bold',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.background = 'rgba(131, 56, 236, 0.4)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.background = 'rgba(131, 56, 236, 0.2)';
+                          }}
+                        >
+                          ✏️ Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDeleteQuestClick(quest)}
+                          style={{
+                            background: 'rgba(255, 23, 68, 0.2)',
+                            border: '1px solid #ff1744',
+                            color: '#ff1744',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontWeight: 'bold',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 23, 68, 0.4)';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 23, 68, 0.2)';
+                          }}
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
 
-                {quests.length === 0 && (
+                {getFilteredAndSortedQuests().length === 0 && questSearchQuery && (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '40px',
+                    color: '#b8b8b8'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🔍</div>
+                    <h4>Aucune quête trouvée</h4>
+                    <p>Aucune quête ne correspond à vos critères de recherche.</p>
+                    <button
+                      onClick={() => {
+                        setQuestSearchQuery('');
+                        setQuestFilterCategory('all');
+                        setQuestFilterDifficulty('all');
+                        setQuestFilterType('all');
+                      }}
+                      style={{
+                        background: 'rgba(131, 56, 236, 0.2)',
+                        border: '1px solid #8338ec',
+                        color: '#8338ec',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        marginTop: '15px'
+                      }}
+                    >
+                      Effacer les filtres
+                    </button>
+                  </div>
+                )}
+
+                {getFilteredAndSortedQuests().length === 0 && !questSearchQuery && quests.length === 0 && (
                   <div style={{
                     textAlign: 'center',
                     padding: '40px',

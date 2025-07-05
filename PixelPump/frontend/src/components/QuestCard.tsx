@@ -56,11 +56,26 @@ const typeStyles = {
   }
 };
 
-const formatTimeRemaining = (hours: number): string => {
-  if (hours < 1) return 'Moins d\'1h';
-  if (hours < 24) return `${Math.round(hours)}h`;
-  if (hours < 168) return `${Math.round(hours / 24)}j`;
-  return `${Math.round(hours / 168)}sem`;
+const formatTimeRemaining = (timeMs: number): string => {
+  if (timeMs === Infinity || timeMs > 31536000000) return 'Permanent'; // Plus d'1 an
+  if (timeMs <= 0) return 'Expiré';
+  
+  const totalSeconds = Math.floor(timeMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return `${days}j ${remainingHours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+  } else {
+    return `${seconds}s`;
+  }
 };
 
 export const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = false }) => {
@@ -216,9 +231,20 @@ export const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact
           minHeight: '60px'
         }}>
           {/* Temps restant */}
-          <div className="flex items-center justify-center gap-1 text-xs font-mono" style={{ color: '#9d4edd' }}>
+          <div className="flex items-center justify-center gap-1 text-xs font-mono" style={{ 
+            color: quest.time_remaining <= 7200000 ? '#ff1744' :      // Moins de 2h (rouge)
+                   quest.time_remaining <= 43200000 ? '#ff9800' :     // Moins de 12h (orange)
+                   quest.time_remaining <= 86400000 ? '#ffc107' :     // Moins de 24h (jaune)
+                   '#9d4edd'                                          // Plus de 24h (violet)
+          }}>
             <Clock className="w-3 h-3" />
             <span>{formatTimeRemaining(quest.time_remaining)}</span>
+            {quest.time_remaining <= 7200000 && quest.time_remaining > 0 && (      // Moins de 2h
+              <span className="animate-pulse">⚠️</span>
+            )}
+            {quest.time_remaining <= 0 && (
+              <span className="animate-pulse">❌</span>
+            )}
           </div>
 
           {/* Bouton d'action */}

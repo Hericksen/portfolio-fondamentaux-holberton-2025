@@ -6,7 +6,9 @@ import {
   Calendar,
   Target,
   Trophy,
-  BarChart3
+  BarChart3,
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
 
 interface CycleOverviewProps {
@@ -27,10 +29,27 @@ const typeLabels = {
 };
 
 const formatTimeRemaining = (hours: number): string => {
-  if (hours < 1) return 'Moins d\'1h';
-  if (hours < 24) return `${Math.round(hours)}h`;
-  if (hours < 168) return `${Math.round(hours / 24)}j`;
-  return `${Math.round(hours / 168)}sem`;
+  if (hours === Infinity || hours > 8760) return 'Permanent'; // Plus d'1 an
+  if (hours <= 0) return 'Expiré';
+  
+  // Convertir les heures en millisecondes pour utiliser le même format que QuestCard
+  const timeMs = hours * 3600 * 1000;
+  const totalSeconds = Math.floor(timeMs / 1000);
+  const totalHours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  
+  if (totalHours > 72) { // Plus de 3 jours
+    const days = Math.floor(totalHours / 24);
+    const remainingHours = totalHours % 24;
+    return `${days}j ${remainingHours}h`;
+  } else if (totalHours > 0) {
+    return `${totalHours}h ${minutes.toString().padStart(2, '0')}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+  } else {
+    return `${seconds}s`;
+  }
 };
 
 export const CycleOverview: React.FC<CycleOverviewProps> = ({ cycles, className = '' }) => {
@@ -130,9 +149,23 @@ export const CycleOverview: React.FC<CycleOverviewProps> = ({ cycles, className 
                 </div>
 
                 {/* Temps restant */}
-                <div className="flex items-center gap-2 text-xs font-mono" style={{ color: '#9d4edd' }}>
-                  <Clock className="w-3 h-3" />
+                <div className="flex items-center gap-2 text-xs font-mono" style={{ 
+                  color: cycle.time_remaining <= 2 ? '#ff1744' :        // Moins de 2h (rouge)
+                         cycle.time_remaining <= 12 ? '#ff9800' :       // Moins de 12h (orange)  
+                         cycle.time_remaining <= 24 ? '#ffc107' :       // Moins de 24h (jaune)
+                         '#9d4edd'                                       // Plus de 24h (violet)
+                }}>
+                  {cycle.time_remaining <= 2 ? (
+                    <AlertTriangle className="w-3 h-3" />
+                  ) : cycle.time_remaining <= 12 ? (
+                    <Zap className="w-3 h-3" />
+                  ) : (
+                    <Clock className="w-3 h-3" />
+                  )}
                   <span>{formatTimeRemaining(cycle.time_remaining)} restant</span>
+                  {cycle.time_remaining <= 2 && cycle.time_remaining > 0 && (
+                    <AlertTriangle className="w-3 h-3 animate-pulse" style={{ color: '#ff1744' }} />
+                  )}
                 </div>
 
                 {/* Dates */}

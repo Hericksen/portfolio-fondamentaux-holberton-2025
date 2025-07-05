@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { PixelAvatar } from './PixelAvatar';
+import { AvatarCustomizer } from './AvatarCustomizer';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
 import { Target, TrendingUp, Trophy } from 'lucide-react';
 import api from '../services/api';
@@ -17,11 +18,13 @@ interface UserProfile {
   xp: number;
   streak: number;
   avatar: {
-    body: string;
-    outfit: string;
-    accessory: string;
-    color: string;
-    background: string;
+    body?: string;
+    outfit?: string;
+    accessory?: string;
+    color?: string;
+    background?: string;
+    hair?: string;
+    eyes?: string;
   };
   fitness_goals: {
     daily_quests: number;
@@ -56,7 +59,21 @@ export const UserProfile: React.FC = () => {
   const [editData, setEditData] = useState({
     username: '',
     avatar: {
-      color: '#ff006e'
+      body: 'default',
+      outfit: 'casual',
+      accessory: 'none',
+      color: '#ff006e',
+      background: 'gym',
+      hair: 'short',
+      eyes: 'normal'
+    } as {
+      body?: string;
+      outfit?: string;
+      accessory?: string;
+      color?: string;
+      background?: string;
+      hair?: string;
+      eyes?: string;
     },
     fitness_goals: {
       daily_quests: 3,
@@ -76,7 +93,15 @@ export const UserProfile: React.FC = () => {
         setProfile(response.data.profile);
         setEditData({
           username: response.data.profile.username,
-          avatar: response.data.profile.avatar,
+          avatar: {
+            body: response.data.profile.avatar?.body || 'default',
+            outfit: response.data.profile.avatar?.outfit || 'casual',
+            accessory: response.data.profile.avatar?.accessory || 'none',
+            color: response.data.profile.avatar?.color || '#ff006e',
+            background: response.data.profile.avatar?.background || 'gym',
+            hair: response.data.profile.avatar?.hair || 'short',
+            eyes: response.data.profile.avatar?.eyes || 'normal'
+          },
           fitness_goals: response.data.profile.fitness_goals
         });
       }
@@ -366,30 +391,13 @@ export const UserProfile: React.FC = () => {
             <CardTitle>Personnalisation Avatar</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Couleur
-                </label>
-                <Input
-                  type="color"
-                  value={editData.avatar.color}
-                  onChange={(e) => setEditData({
-                    ...editData,
-                    avatar: {
-                      ...editData.avatar,
-                      color: e.target.value
-                    }
-                  })}
-                />
-              </div>
-              <div className="flex items-end">
-                <PixelAvatar 
-                  avatarData={editData.avatar} 
-                  size="medium"
-                />
-              </div>
-            </div>
+            <AvatarCustomizer
+              currentAvatar={editData.avatar}
+              onAvatarChange={(newAvatar) => setEditData({
+                ...editData,
+                avatar: newAvatar
+              })}
+            />
           </CardContent>
         </Card>
       )}
