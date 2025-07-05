@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { PixelAvatar } from './PixelAvatar';
-import { AvatarCustomizer } from './AvatarCustomizer';
+import { ModernAvatarCustomizer } from './ModernAvatarCustomizer';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
 import { Target, TrendingUp, Trophy } from 'lucide-react';
 import api from '../services/api';
@@ -391,9 +391,9 @@ export const UserProfile: React.FC = () => {
             <CardTitle>Personnalisation Avatar</CardTitle>
           </CardHeader>
           <CardContent>
-            <AvatarCustomizer
+            <ModernAvatarCustomizer
               currentAvatar={editData.avatar}
-              onAvatarChange={(newAvatar) => setEditData({
+              onAvatarChange={(newAvatar: any) => setEditData({
                 ...editData,
                 avatar: newAvatar
               })}

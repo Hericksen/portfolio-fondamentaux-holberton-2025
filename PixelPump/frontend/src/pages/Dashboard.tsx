@@ -1,13 +1,16 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
+import { ModernAvatarCustomizer } from '../components/ModernAvatarCustomizer';
 
 function Dashboard() {
   const navigate = useNavigate();
   const { user: authUser, logout } = useAuth();
   const { dashboardData, loading, error, refreshDashboard } = useDashboard();
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -300,8 +303,70 @@ function Dashboard() {
               }}>
                 Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR')}
               </p>
+              
+              {/* Bouton Personnalisation Avatar */}
+              <button 
+                onClick={() => setShowAvatarCustomizer(!showAvatarCustomizer)}
+                style={{
+                  display: 'inline-block',
+                  marginTop: '15px',
+                  padding: '10px 20px',
+                  background: showAvatarCustomizer 
+                    ? 'linear-gradient(135deg, #06ffa5, #8338ec)' 
+                    : 'linear-gradient(135deg, #ff006e, #8338ec)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '25px',
+                  fontWeight: 'bold',
+                  fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+                  textTransform: 'uppercase',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255, 0, 110, 0.3)',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 0, 110, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 0, 110, 0.3)';
+                }}
+              >
+                {showAvatarCustomizer ? '✅ Fermer Customizer' : '🎨 Personnaliser Avatar'}
+              </button>
             </div>
           </div>
+          
+          {/* Avatar Customizer */}
+          {showAvatarCustomizer && (
+            <div style={{ 
+              marginBottom: '30px',
+              background: 'rgba(131, 56, 236, 0.1)',
+              borderRadius: '20px',
+              padding: '25px',
+              border: '2px solid #8338ec',
+              boxShadow: '0 8px 30px rgba(131, 56, 236, 0.2)'
+            }}>
+              <h3 style={{
+                color: '#8338ec',
+                fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                marginBottom: '20px',
+                textTransform: 'uppercase'
+              }}>
+                🎨 Personnalisation Avatar
+              </h3>
+              <ModernAvatarCustomizer
+                currentAvatar={user.avatar || {}}
+                onAvatarChange={(newAvatar) => {
+                  // TODO: Implémenter la sauvegarde de l'avatar
+                  console.log('Nouvel avatar:', newAvatar);
+                }}
+              />
+            </div>
+          )}
           
           {/* Statistiques Principales */}
           <div style={{ 

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const NewUserQuestService = require('./NewUserQuestService');
 
 class UserService {
   // Profil par défaut pour un nouvel utilisateur
@@ -42,11 +43,23 @@ class UserService {
   async createUser(data) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    return await User.create({
+    const user = await User.create({
       username: data.username,
       email: data.email,
       password: hashedPassword
     });
+
+    // Assigner automatiquement des quêtes adaptées au niveau du nouvel utilisateur
+    try {
+      const questAssignment = await NewUserQuestService.assignQuestsForNewUser(user.id, user.level || 1);
+      if (questAssignment.success) {
+        console.log(`🎯 Quêtes assignées automatiquement au nouvel utilisateur ${data.username}`);
+      }
+    } catch (error) {
+      console.error(`❌ Erreur lors de l'assignation de quêtes pour ${data.username}:`, error);
+    }
+
+    return user;
   }
 
   async createUserWithProfile(userData) {
@@ -60,6 +73,18 @@ class UserService {
       email,
       password: hashedPassword
     });
+
+    // Assigner automatiquement des quêtes adaptées au niveau du nouvel utilisateur
+    try {
+      const questAssignment = await NewUserQuestService.assignQuestsForNewUser(user.id, user.level || 1);
+      if (questAssignment.success) {
+        console.log(`🎯 Quêtes assignées automatiquement au nouvel utilisateur ${username}`);
+      } else {
+        console.log(`⚠️ Échec de l'assignation de quêtes pour ${username}: ${questAssignment.message}`);
+      }
+    } catch (error) {
+      console.error(`❌ Erreur lors de l'assignation de quêtes pour ${username}:`, error);
+    }
 
     return user;
   }

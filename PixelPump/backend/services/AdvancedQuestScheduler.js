@@ -433,7 +433,63 @@ class AdvancedQuestScheduler {
     // Ici on peut ajouter des métriques plus détaillées
   }
 
-  // === MÉTHODES DE TEST ET DEBUG ===
+  // === FONCTIONS DE TEST ET UTILITAIRES ===
+
+  async assignDailyQuestsToAllUsers() {
+    try {
+      console.log('🔄 Assignation manuelle de quêtes quotidiennes...');
+      
+      // Créer un cycle de test ou utiliser null
+      let testCycleId = null;
+      try {
+        const testCycle = await QuestCycle.create({
+          type: 'daily',
+          start_date: new Date(),
+          end_date: moment().add(1, 'day').toDate()
+        });
+        testCycleId = testCycle.id;
+      } catch (error) {
+        console.log('⚠️ Pas de cycle créé, assignation sans cycle');
+      }
+      
+      const activeUsers = await this.getActiveUsers();
+      let successCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      for (const user of activeUsers) {
+        try {
+          await this.assignDailyQuestsToUser(user, testCycleId);
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          errors.push(`${user.username}: ${error.message}`);
+        }
+      }
+
+      const result = {
+        success: errorCount === 0,
+        message: `Assignation terminée: ${successCount} succès, ${errorCount} erreurs`,
+        details: {
+          total: activeUsers.length,
+          success: successCount,
+          errors: errorCount,
+          errorDetails: errors.slice(0, 5) // Limiter à 5 erreurs pour éviter le spam
+        }
+      };
+
+      console.log(`✅ ${result.message}`);
+      return result;
+
+    } catch (error) {
+      console.error('❌ Erreur assignation manuelle:', error);
+      return {
+        success: false,
+        message: `Erreur: ${error.message}`,
+        details: null
+      };
+    }
+  }
 
   async testAssignUser(userId) {
     const user = await User.findByPk(userId);

@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Admin from './pages/Admin';
 import AdminDashboard from './pages/AdminDashboard';
 import Database from './pages/Database';
+import { UserProfile } from './components/UserProfile';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -113,6 +114,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Database />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
                 </ProtectedRoute>
               }
             />
