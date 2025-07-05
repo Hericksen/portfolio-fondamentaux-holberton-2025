@@ -1,5 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
@@ -11,6 +11,47 @@ function Dashboard() {
   const { user: authUser, logout } = useAuth();
   const { dashboardData, loading, error, refreshDashboard } = useDashboard();
   const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
+  const [currentAvatar, setCurrentAvatar] = useState(dashboardData?.user?.avatar || {});
+
+  // Synchroniser l'avatar local avec les données du dashboard
+  useEffect(() => {
+    if (dashboardData?.user?.avatar) {
+      setCurrentAvatar(dashboardData.user.avatar);
+    }
+  }, [dashboardData?.user?.avatar]);
+
+  // Fonction pour sauvegarder l'avatar
+  const handleAvatarChange = async (newAvatar: any) => {
+    try {
+      // Mettre à jour l'état local immédiatement pour un retour visuel instantané
+      setCurrentAvatar(newAvatar);
+
+      // Envoyer la mise à jour au serveur
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/users/avatar', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar: newAvatar })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la sauvegarde de l\'avatar');
+      }
+
+      console.log('Avatar sauvegardé avec succès:', newAvatar);
+      
+      // Optionnel: rafraîchir les données du dashboard
+      // refreshDashboard();
+
+    } catch (error) {
+      console.error('Erreur sauvegarde avatar:', error);
+      // En cas d'erreur, revenir à l'avatar précédent
+      setCurrentAvatar(dashboardData?.user?.avatar || {});
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -266,7 +307,7 @@ function Dashboard() {
               border: '4px solid white',
               flexShrink: 0
             }}>
-              <PixelAvatar avatarData={user.avatar} size="large" />
+              <PixelAvatar avatarData={currentAvatar} size="large" />
             </div>
             
             {/* Informations Utilisateur */}
@@ -359,10 +400,9 @@ function Dashboard() {
                 🎨 Personnalisation Avatar
               </h3>
               <ModernAvatarCustomizer
-                currentAvatar={user.avatar || {}}
+                currentAvatar={currentAvatar}
                 onAvatarChange={(newAvatar) => {
-                  // TODO: Implémenter la sauvegarde de l'avatar
-                  console.log('Nouvel avatar:', newAvatar);
+                  handleAvatarChange(newAvatar);
                 }}
               />
             </div>

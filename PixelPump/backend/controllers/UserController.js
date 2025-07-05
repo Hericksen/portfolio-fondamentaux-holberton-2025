@@ -231,6 +231,40 @@ const UserController = {
     }
   },
 
+  // Mettre à jour l'avatar de l'utilisateur connecté
+  async updateMyAvatar(req, res) {
+    try {
+      const { avatar } = req.body;
+      const userId = req.user.userId;
+      
+      const user = await User.findByPk(userId);
+      
+      if (!user) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Utilisateur non trouvé' 
+        });
+      }
+
+      await user.update({ avatar });
+      
+      const userResponse = user.toJSON();
+      delete userResponse.password;
+      
+      res.json({
+        success: true,
+        message: 'Avatar mis à jour avec succès',
+        user: userResponse
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur serveur', 
+        error: error.message 
+      });
+    }
+  },
+
   // Ajouter de l'XP à un utilisateur
   async addXp(req, res) {
     try {
