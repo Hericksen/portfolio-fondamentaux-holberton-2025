@@ -6,6 +6,8 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { PixelAvatar } from './PixelAvatar';
 import { ModernAvatarCustomizer } from './ModernAvatarCustomizer';
+import { AchievementsDisplay } from './AchievementsDisplay';
+import { AchievementsPreview } from './AchievementsPreview';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
 import { Target, TrendingUp, Trophy } from 'lucide-react';
 import api from '../services/api';
@@ -53,6 +55,7 @@ export const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showFullAchievements, setShowFullAchievements] = useState(false);
   
   // Hook pour récupérer les statistiques des quêtes
   const { stats: questStats } = useAdvancedQuests();
@@ -383,6 +386,28 @@ export const UserProfile: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Succès & Achievements */}
+      {showFullAchievements ? (
+        <AchievementsDisplay className="w-full" />
+      ) : (
+        <AchievementsPreview 
+          className="w-full"
+          maxItems={3}
+          onViewAll={() => setShowFullAchievements(true)}
+        />
+      )}
+      
+      {showFullAchievements && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowFullAchievements(false)}
+            className="px-4 py-2 text-sm text-purple-600 hover:text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
+          >
+            Afficher moins
+          </button>
+        </div>
+      )}
 
       {/* Personnalisation Avatar */}
       {isEditing && (

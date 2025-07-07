@@ -65,7 +65,6 @@ const AdminDashboard: React.FC = () => {
 
   // States pour les modales de confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [showXpModal, setShowXpModal] = useState(false);
   const [selectedUserForXp, setSelectedUserForXp] = useState<User | null>(null);
   const [xpToAdd, setXpToAdd] = useState(100);
@@ -107,6 +106,18 @@ const AdminDashboard: React.FC = () => {
     }
     fetchDashboardData();
   }, [user, navigate]);
+
+  // Clean up stale user selections when users list changes
+  useEffect(() => {
+    if (users.length > 0 && selectedUsers.length > 0) {
+      const validSelections = selectedUsers.filter(userId => 
+        users.some(user => user.id === userId)
+      );
+      if (validSelections.length !== selectedUsers.length) {
+        setSelectedUsers(validSelections);
+      }
+    }
+  }, [users, selectedUsers]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -184,32 +195,40 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // Si c'est une suppression, on affiche la modal de confirmation
-    if (bulkAction === 'delete') {
-      setDeleteModalData({
-        title: 'Supprimer des utilisateurs',
-        message: `Attention ! Vous êtes sur le point de supprimer définitivement ${selectedUsers.length} utilisateur(s) de PixelPump ! Cette action est irréversible !`,
-        userId: '',
-        userCount: selectedUsers.length
-      });
-      setShowBulkDeleteModal(true);
-      return;
-    }
-
     try {
       setLoading(true);
-      const promises = selectedUsers.map(userId => {
-        switch (bulkAction) {
-          case 'addXp':
-            return api.patch(`/users/${userId}/xp`, { xp: customXpAmount });
-          case 'resetProgress':
-            return api.patch(`/users/${userId}`, { xp: 0, level: 1, streak: 0 });
-          default:
-            return Promise.resolve();
-        }
-      });
+      
+      // Filter out users that no longer exist
+      const validUsers = selectedUsers.filter(userId => 
+        users.some(user => user.id === userId)
+      );
 
-      await Promise.all(promises);
+      if (validUsers.length === 0) {
+        setNotification('❌ Aucun utilisateur valide sélectionné');
+        setSelectedUsers([]);
+        return;
+      }
+
+      const results = await Promise.allSettled(
+        validUsers.map(async (userId) => {
+          try {
+            switch (bulkAction) {
+              case 'addXp':
+                return await api.patch(`/users/${userId}/xp`, { xp: customXpAmount });
+              case 'resetProgress':
+                return await api.patch(`/users/${userId}`, { xp: 0, level: 1, streak: 0 });
+              default:
+                return Promise.resolve();
+            }
+          } catch (error: any) {
+            console.warn(`Failed to update user ${userId}:`, error.response?.status);
+            throw error;
+          }
+        })
+      );
+
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected').length;
       
       let actionMessage = '';
       switch (bulkAction) {
@@ -223,7 +242,12 @@ const AdminDashboard: React.FC = () => {
           actionMessage = `Action "${bulkAction}" appliquée`;
       }
       
-      setNotification(`✅ ${actionMessage} à ${selectedUsers.length} utilisateur(s)`);
+      if (failed > 0) {
+        setNotification(`⚠️ ${actionMessage} à ${successful} utilisateur(s), ${failed} échec(s)`);
+      } else {
+        setNotification(`✅ ${actionMessage} à ${successful} utilisateur(s)`);
+      }
+      
       setSelectedUsers([]);
       setBulkAction('');
       fetchUsers();
@@ -247,25 +271,6 @@ const AdminDashboard: React.FC = () => {
       setShowDeleteModal(false);
     }
   };
-
-  const confirmBulkDeleteUsers = async () => {
-    try {
-      setLoading(true);
-      const promises = selectedUsers.map(userId => api.delete(`/users/${userId}`));
-      await Promise.all(promises);
-      setNotification(`✅ ${selectedUsers.length} utilisateur(s) supprimé(s) avec succès !`);
-      setSelectedUsers([]);
-      setBulkAction('');
-      fetchUsers();
-    } catch (error) {
-      setNotification('❌ Erreur lors de la suppression des utilisateurs');
-    } finally {
-      setLoading(false);
-      setShowBulkDeleteModal(false);
-    }
-  };
-
-
 
   // Quest CRUD functions
   const handleCreateQuest = () => {
@@ -741,7 +746,6 @@ const AdminDashboard: React.FC = () => {
                   <option value="">Choisir une action</option>
                   <option value="addXp">Ajouter XP personnalisé</option>
                   <option value="resetProgress">Réinitialiser progression</option>
-                  <option value="delete">Bannir les pumpers</option>
                 </select>
 
                 {bulkAction === 'addXp' && (
@@ -793,7 +797,25 @@ const AdminDashboard: React.FC = () => {
               border: '2px solid #ff006e',
               overflowX: 'auto'
             }}>
-              <h3 style={{ color: '#ff006e', marginBottom: '20px' }}>👥 Gestion des utilisateurs</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ color: '#ff006e', margin: 0 }}>👥 Gestion des utilisateurs</h3>
+                <button
+                  onClick={fetchUsers}
+                  disabled={loading}
+                  style={{
+                    background: 'linear-gradient(135deg, #ff006e, #8338ec)',
+                    border: 'none',
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  🔄 Actualiser
+                </button>
+              </div>
 
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '40px' }}>🔄 Chargement...</div>
@@ -938,19 +960,6 @@ const AdminDashboard: React.FC = () => {
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={confirmDeleteUser}
-                title={deleteModalData.title}
-                message={deleteModalData.message}
-                confirmText="Supprimer"
-                cancelText="Annuler"
-                type="danger"
-              />
-            )}
-
-            {showBulkDeleteModal && (
-              <ConfirmModal
-                isOpen={showBulkDeleteModal}
-                onClose={() => setShowBulkDeleteModal(false)}
-                onConfirm={confirmBulkDeleteUsers}
                 title={deleteModalData.title}
                 message={deleteModalData.message}
                 confirmText="Supprimer"

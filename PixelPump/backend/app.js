@@ -109,6 +109,37 @@ async function startServer() {
     await sequelize.sync({ force: false });
     console.log('✅ Base de données synchronisée');
 
+    // Initialiser le système de quêtes automatiquement
+    const QuestInitializationService = require('./services/QuestInitializationService');
+    await QuestInitializationService.initializeQuestSystem();
+
+    // Démarrer le service de gestion des quêtes expirées
+    const ExpiredQuestService = require('./services/ExpiredQuestService');
+    
+    // Traitement initial des quêtes expirées
+    console.log('🕒 Traitement initial des quêtes expirées...');
+    await ExpiredQuestService.processAllExpiredQuests();
+    
+    // Planifier un traitement périodique des quêtes expirées (toutes les heures)
+    setInterval(async () => {
+      try {
+        await ExpiredQuestService.processAllExpiredQuests();
+      } catch (error) {
+        console.error('❌ Erreur lors du traitement périodique des quêtes expirées:', error);
+      }
+    }, 60 * 60 * 1000); // 1 heure = 60 * 60 * 1000 ms
+    
+    // Planifier un nettoyage des anciennes quêtes expirées (une fois par jour)
+    setInterval(async () => {
+      try {
+        await ExpiredQuestService.cleanupOldExpiredQuests();
+      } catch (error) {
+        console.error('❌ Erreur lors du nettoyage des quêtes expirées:', error);
+      }
+    }, 24 * 60 * 60 * 1000); // 24 heures
+    
+    console.log('✅ Service de gestion des quêtes expirées démarré');
+
     // Créer les utilisateurs de démo si nécessaire
     const { createDemoUsers } = require('./seeds/seed');
     await createDemoUsers();

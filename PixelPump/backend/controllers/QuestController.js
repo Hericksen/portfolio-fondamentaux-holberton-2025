@@ -33,8 +33,15 @@ const QuestController = {
       // Récupérer les quêtes de l'utilisateur connecté ou de l'utilisateur spécifié
       const targetUserId = userId || req.user.userId;
       
+      // Vérifier et traiter les quêtes expirées avant de retourner les résultats
+      const ExpiredQuestService = require('../services/ExpiredQuestService');
+      await ExpiredQuestService.processExpiredQuestsForUser(targetUserId);
+      
       const userQuests = await UserQuest.findAll({
-        where: { user_id: targetUserId },
+        where: { 
+          user_id: targetUserId,
+          is_archived: false // Ne pas retourner les quêtes archivées (expirées)
+        },
         include: [{ 
           model: Quest,
           attributes: ['id', 'title', 'description', 'type', 'category', 'xp_reward', 'difficulty', 'duration_minutes']
@@ -272,6 +279,146 @@ const QuestController = {
       res.status(500).json({
         success: false,
         message: 'Erreur serveur',
+        error: error.message
+      });
+    }
+  },
+
+  // Traiter manuellement les quêtes expirées (endpoint admin)
+  async processExpiredQuests(req, res) {
+    try {
+      const ExpiredQuestService = require('../services/ExpiredQuestService');
+      const result = await ExpiredQuestService.processAllExpiredQuests();
+      
+      res.json({
+        success: true,
+        message: `🕒 Traitement des quêtes expirées terminé`,
+        data: {
+          processed: result.processed,
+          replaced: result.replaced,
+          error: result.error
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors du traitement des quêtes expirées',
+        error: error.message
+      });
+    }
+  },
+
+  // Traiter les quêtes expirées pour un utilisateur spécifique
+  async processUserExpiredQuests(req, res) {
+    try {
+      const { userId } = req.params;
+      const targetUserId = userId || req.user.userId;
+      
+      const ExpiredQuestService = require('../services/ExpiredQuestService');
+      const result = await ExpiredQuestService.processExpiredQuestsForUser(targetUserId);
+      
+      res.json({
+        success: true,
+        message: `🕒 Quêtes expirées traitées pour l'utilisateur`,
+        data: {
+          processed: result.processed,
+          replaced: result.replaced,
+          error: result.error
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors du traitement des quêtes expirées',
+        error: error.message
+      });
+    }
+  },
+
+  // Nettoyer les anciennes quêtes expirées (endpoint admin)
+  async cleanupExpiredQuests(req, res) {
+    try {
+      const ExpiredQuestService = require('../services/ExpiredQuestService');
+      const deleted = await ExpiredQuestService.cleanupOldExpiredQuests();
+      
+      res.json({
+        success: true,
+        message: `🧹 ${deleted} anciennes quêtes expirées supprimées`,
+        data: { deleted }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors du nettoyage des quêtes expirées',
+        error: error.message
+      });
+    }
+  },
+
+  // Renouveler les quêtes pour les utilisateurs demo/admin
+  async renewQuestsForDemo(req, res) {
+    try {
+      const { userId } = req.params;
+      const targetUserId = userId || req.user.userId;
+      
+      // Récupérer l'utilisateur
+      const { User } = require('../models');
+      const user = await User.findByPk(targetUserId);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur introuvable'
+        });
+      }
+
+      const LoginQuestService = require('../services/LoginQuestService');
+      
+      // Vérifier si c'est un utilisateur demo/admin
+      if (!LoginQuestService.isDemoOrAdminUser(user)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Cette fonction est réservée aux comptes demo et admin'
+        });
+      }
+
+      // Renouveler les quêtes
+      const result = await LoginQuestService.renewQuestsForDemoUser(user);
+      
+      res.json({
+        success: true,
+        message: `🎭 Quêtes renouvelées pour ${user.username}`,
+        data: {
+          count: result.count,
+          quests: result.quests
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors du renouvellement des quêtes',
+        error: error.message
+      });
+    }
+  },
+
+  // Obtenir les statistiques de quêtes d'un utilisateur
+  async getQuestStats(req, res) {
+    try {
+      const { userId } = req.params;
+      const targetUserId = userId || req.user.userId;
+      
+      const LoginQuestService = require('../services/LoginQuestService');
+      const stats = await LoginQuestService.getQuestStats(targetUserId);
+      
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des statistiques',
         error: error.message
       });
     }

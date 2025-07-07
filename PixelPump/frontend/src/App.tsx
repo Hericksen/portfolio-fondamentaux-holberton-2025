@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import Landing from './pages/Landing';
+import Welcome from './pages/Welcome';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Admin from './pages/Admin';
 import AdminDashboard from './pages/AdminDashboard';
 import Database from './pages/Database';
 import { UserProfile } from './components/UserProfile';
@@ -83,8 +84,29 @@ function App() {
                 </PublicRoute>
               }
             />
+            <Route
+              path="/"
+              element={
+                <PublicRoute>
+                  <Landing />
+                </PublicRoute>
+              }
+            />
 
             {/* Protected Routes */}
+            <Route
+              path="/welcome"
+              element={
+                <ProtectedRoute>
+                  <Welcome onComplete={(userData) => {
+                    // Sauvegarder les données d'onboarding
+                    localStorage.setItem('onboarding_completed', 'true');
+                    localStorage.setItem('user_goals', JSON.stringify(userData.goals));
+                    // L'avatar sera sauvegardé via l'API dans le composant
+                  }} />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
@@ -97,7 +119,7 @@ function App() {
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <Admin />
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

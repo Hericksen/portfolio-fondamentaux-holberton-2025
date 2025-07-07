@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../services/api';
 
 interface DatabaseStats {
   totalUsers: number;
@@ -47,27 +48,21 @@ const Database: React.FC = () => {
 
   const checkAdminAccess = async (tokenToCheck: string = adminToken) => {
     try {
-      const response = await fetch('http://localhost:3001/api/database', {
-        headers: {
-          'Authorization': `Bearer ${tokenToCheck}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setAdminInfo(data.adminInfo);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        setIsAuthenticated(false);
-        setAdminToken('');
-        localStorage.removeItem('adminToken');
-        return false;
+      // Utiliser le token fourni pour cette vérification
+      const currentToken = localStorage.getItem('token');
+      if (tokenToCheck !== currentToken) {
+        localStorage.setItem('token', tokenToCheck);
       }
-    } catch (err) {
+      
+      const response = await api.get('/database');
+      setAdminInfo(response.data.adminInfo);
+      setIsAuthenticated(true);
+      return true;
+    } catch (err: any) {
       setError('Erreur de vérification des permissions admin');
       setIsAuthenticated(false);
+      setAdminToken('');
+      localStorage.removeItem('adminToken');
       return false;
     }
   };
@@ -79,26 +74,19 @@ const Database: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/admin-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminSecret: adminSecret })
+      const response = await api.post('/auth/admin-token', {
+        adminSecret: adminSecret
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setAdminToken(data.token);
-        localStorage.setItem('adminToken', data.token);
-        setIsAuthenticated(true);
-        setError('');
-        setAdminSecret('');
-        await checkAdminAccess(data.token);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Erreur lors de l\'obtention du token admin');
-      }
-    } catch (err) {
-      setError('Erreur de connexion au serveur');
+      setAdminToken(response.data.token);
+      localStorage.setItem('adminToken', response.data.token);
+      setIsAuthenticated(true);
+      setError('');
+      setAdminSecret('');
+      await checkAdminAccess(response.data.token);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Erreur lors de l\'obtention du token admin';
+      setError(errorMessage);
     }
   };
 

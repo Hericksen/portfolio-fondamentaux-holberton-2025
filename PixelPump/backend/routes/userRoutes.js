@@ -36,6 +36,9 @@ router.get('/:id/progress', userController.getProgress);
 // Mettre à jour un utilisateur
 router.put('/:id', userController.update);
 
+// Mettre à jour partiellement un utilisateur (PATCH)
+router.patch('/:id', userController.update);
+
 // Supprimer un utilisateur
 router.delete('/:id', userController.remove);
 

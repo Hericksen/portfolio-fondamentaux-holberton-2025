@@ -19,10 +19,22 @@ router.put('/:questId/complete', questController.completeQuest);
 
 // Gestion des templates (admin)
 router.post('/', questController.createQuest);
-router.delete('/:questId', questController.deleteQuest);
+
+// Gestion des quêtes expirées
+router.post('/expired/process', questController.processUserExpiredQuests);
+router.post('/expired/process/:userId', questController.processUserExpiredQuests);
+
+// Gestion spéciale pour les utilisateurs demo
+router.post('/demo/renew', questController.renewQuestsForDemo);
+router.post('/demo/renew/:userId', questController.renewQuestsForDemo);
+router.get('/stats', questController.getQuestStats);
+router.get('/stats/:userId', questController.getQuestStats);
 
 // Routes admin seulement
 router.post('/assign/user', adminMiddleware, questController.assignQuestToUser);
+router.post('/expired/process-all', adminMiddleware, questController.processExpiredQuests);
+router.post('/expired/cleanup', adminMiddleware, questController.cleanupExpiredQuests);
+router.delete('/:questId', questController.deleteQuest);
 router.delete('/user/:userId', adminMiddleware, questController.deleteUser);
 
 module.exports = router;

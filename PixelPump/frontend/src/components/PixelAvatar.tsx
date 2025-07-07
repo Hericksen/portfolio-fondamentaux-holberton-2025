@@ -18,6 +18,7 @@ interface PixelAvatarProps {
   outfit?: 'default' | 'premium' | 'cyber' | 'developer';
   accessory?: 'none' | 'glasses' | 'headphones' | 'cap' | 'crown';
   expression?: 'neutral' | 'happy' | 'cool' | 'focus';
+  className?: string;
 }
 
 const PixelAvatar: React.FC<PixelAvatarProps> = ({
@@ -28,7 +29,8 @@ const PixelAvatar: React.FC<PixelAvatarProps> = ({
   skinColor: propSkinColor,
   outfit: propOutfit,
   accessory: propAccessory,
-  expression: propExpression
+  expression: propExpression,
+  className = ""
 }) => {
   // Handle size conversion
   const numericSize = typeof size === 'string' 
@@ -72,7 +74,7 @@ const PixelAvatar: React.FC<PixelAvatarProps> = ({
 
   return (
     <div 
-      className="pixel-avatar relative"
+      className={`pixel-avatar relative ${className}`}
       style={{ 
         width: numericSize, 
         height: numericSize,

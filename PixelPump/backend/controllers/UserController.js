@@ -22,6 +22,20 @@ const UserController = {
         password: hashedPassword
       });
 
+      // Assigner automatiquement des quêtes au nouvel utilisateur
+      try {
+        const QuestInitializationService = require('../services/QuestInitializationService');
+        const result = await QuestInitializationService.assignQuestsToUser(user.id, user.level);
+        if (result.success) {
+          console.log(`🎮 ${result.count} quêtes automatiquement assignées à ${username}`);
+        } else {
+          console.log(`⚠️ Aucune quête assignée à ${username}: ${result.message}`);
+        }
+      } catch (questError) {
+        console.error(`⚠️ Erreur lors de l'assignation des quêtes à ${username}:`, questError.message);
+        // Ne pas faire échouer la création de l'utilisateur si l'assignation des quêtes échoue
+      }
+
       const userResponse = user.toJSON();
       delete userResponse.password;
 
@@ -130,7 +144,29 @@ const UserController = {
         req.body.password = await bcrypt.hash(req.body.password, 10);
       }
 
+      // Détecter si c'est une réinitialisation de progression
+      const isProgressReset = req.body.xp === 0 && req.body.level === 1 && req.body.streak === 0;
+
+      // Si c'est une réinitialisation de progression, inclure la réinitialisation du compteur de quêtes
+      if (isProgressReset && req.body.total_quests_completed === undefined) {
+        req.body.total_quests_completed = 0;
+        req.body.last_quest_date = null;
+      }
+
       await user.update(req.body);
+      
+      // Si c'est une réinitialisation de progression, réassigner des quêtes
+      if (isProgressReset) {
+        try {
+          const QuestInitializationService = require('../services/QuestInitializationService');
+          const result = await QuestInitializationService.assignQuestsToUser(user.id, 1, true); // true = forcer la réassignation
+          if (result.success && result.count > 0) {
+            console.log(`🔄 Progression réinitialisée pour ${user.username}: ${result.count} nouvelles quêtes assignées, compteur de quêtes remis à zéro`);
+          }
+        } catch (questError) {
+          console.error(`⚠️ Erreur lors de la réassignation des quêtes après réinitialisation:`, questError.message);
+        }
+      }
       
       const userResponse = user.toJSON();
       delete userResponse.password;

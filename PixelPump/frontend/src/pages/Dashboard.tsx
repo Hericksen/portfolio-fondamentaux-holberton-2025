@@ -5,6 +5,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
 import { ModernAvatarCustomizer } from '../components/ModernAvatarCustomizer';
+import { api } from '../services/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -27,19 +28,7 @@ function Dashboard() {
       setCurrentAvatar(newAvatar);
 
       // Envoyer la mise à jour au serveur
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/users/avatar', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ avatar: newAvatar })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde de l\'avatar');
-      }
+      await api.put('/users/avatar', { avatar: newAvatar });
 
       console.log('Avatar sauvegardé avec succès:', newAvatar);
       
