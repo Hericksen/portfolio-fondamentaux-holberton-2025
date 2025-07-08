@@ -77,33 +77,48 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
   };
 
   const handleRefresh = async () => {
-    console.log('🔄 Clic sur le bouton Actualiser');
+    console.log('🔄 Dashboard: Clic sur le bouton Renouveler');
     
     try {
       // Désactiver le bouton pendant la requête
       setRefreshLoading(true);
       
       // Forcer le renouvellement des quêtes
-      console.log('🎮 Tentative de renouvellement des quêtes via le service indépendant...');
+      console.log('🎮 Dashboard: Tentative de renouvellement des quêtes...');
       const success = await renewQuests();
-      console.log('✅ Résultat:', success);
-      
-      // Actualiser l'affichage et montrer un retour
-      setActiveTab('all');
+      console.log('✅ Dashboard: Résultat du renouvellement:', success);
       
       if (success) {
-        alert(`✅ Succès! Nouvelles quêtes assignées.`);
+        // Attendre un peu pour s'assurer que les nouvelles quêtes sont chargées
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Forcer un rafraîchissement supplémentaire pour s'assurer que l'UI est à jour
+        await refreshQuests();
+        
+        // Calculer le nombre de quêtes après renouvellement
+        const totalQuests = Object.values(activeQuests).flat().length;
+        console.log('📊 Dashboard: Nombre total de quêtes après renouvellement:', totalQuests);
+        
+        // Afficher le message de succès
+        alert(`✅ Succès! ${totalQuests > 0 ? `${totalQuests} quêtes assignées` : 'Nouvelles quêtes assignées'}.`);
+        
+        // Remonter en haut de page pour voir les nouvelles quêtes
+        setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }, 200);
+        
+        // S'assurer d'afficher toutes les quêtes
+        setActiveTab('all');
+        
       } else {
         alert('⚠️ Les quêtes n\'ont pas pu être renouvelées.');
       }
       
-      // Attendre un peu pour que l'utilisateur voie le message
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Rafraîchir les quêtes à l'écran
-      await refreshQuests();
     } catch (error) {
-      console.error('❌ Erreur lors du renouvellement:', error);
+      console.error('❌ Dashboard: Erreur lors du renouvellement:', error);
       alert('❌ Erreur lors du renouvellement des quêtes. Veuillez réessayer plus tard.');
     } finally {
       setRefreshLoading(false);

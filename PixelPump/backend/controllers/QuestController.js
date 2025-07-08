@@ -360,33 +360,50 @@ const QuestController = {
     try {
       const LoginQuestService = require('../services/LoginQuestService');
       
-      // Utiliser l'ID de l'utilisateur de la requête si disponible, sinon utiliser un ID par défaut
+      // Utiliser l'ID de l'utilisateur de la requête si disponible, sinon chercher un utilisateur démo
       let userId;
+      let user;
       
       if (req.params.userId) {
         // ID passé en paramètre d'URL
         userId = req.params.userId;
+        user = await User.findByPk(userId, {
+          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+        });
       } else if (req.user && req.user.userId) {
         // ID de l'utilisateur authentifié
         userId = req.user.userId;
+        user = await User.findByPk(userId, {
+          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+        });
       } else {
-        // Utiliser l'ID de démo par défaut (1 = admin démo)
-        userId = 1;
-        console.log(`\n🔄 [CONTROLLER] Aucun utilisateur authentifié - Utilisation de l'ID démo par défaut: ${userId}`);
+        // Chercher un utilisateur démo par défaut
+        console.log(`\n🔄 [CONTROLLER] Aucun utilisateur spécifique - Recherche d'un utilisateur démo`);
+        user = await User.findOne({
+          where: {
+            username: 'NewbiePumper' // Nom d'utilisateur démo par défaut
+          },
+          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+        });
+        
+        if (!user) {
+          // Si NewbiePumper n'existe pas, chercher n'importe quel utilisateur admin
+          user = await User.findOne({
+            where: {
+              role: 'admin'
+            },
+            attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+          });
+        }
       }
       
-      console.log(`\n🔄 [CONTROLLER] Demande de renouvellement des quêtes - UserID: ${userId}`);
-      
-      // Récupérer l'utilisateur avec toutes ses informations
-      const user = await User.findByPk(userId, {
-        attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
-      });
+      console.log(`\n🔄 [CONTROLLER] Demande de renouvellement des quêtes - UserID: ${user?.id}`);
       
       if (!user) {
-        console.log(`❌ [CONTROLLER] Utilisateur non trouvé - ID: ${userId}`);
+        console.log(`❌ [CONTROLLER] Aucun utilisateur trouvé pour le renouvellement`);
         return res.status(404).json({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Aucun utilisateur démo trouvé'
         });
       }
       
