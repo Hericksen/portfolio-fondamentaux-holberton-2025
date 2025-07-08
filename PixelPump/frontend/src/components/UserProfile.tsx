@@ -91,7 +91,7 @@ export const UserProfile: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await api.get('/users/profile/me');
+      const response = await api.get('/api/users/profile/me');
       if (response.data.success) {
         setProfile(response.data.profile);
         setEditData({
@@ -117,7 +117,7 @@ export const UserProfile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const response = await api.put('/users/profile/me', editData);
+      const response = await api.put('/api/users/profile/me', editData);
       if (response.data.success) {
         setProfile(response.data.profile);
         setIsEditing(false);

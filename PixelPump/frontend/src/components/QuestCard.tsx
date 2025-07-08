@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -37,247 +37,267 @@ const typeStyles = {
     bg: 'rgba(0, 188, 212, 0.15)', 
     border: '#00bcd4', 
     text: '#4dd0e1',
-    icon: Target,
+    icon: Clock,
     label: 'Hebdomadaire'
   },
   monthly: { 
-    bg: 'rgba(76, 175, 80, 0.15)', 
-    border: '#4caf50', 
-    text: '#81c784',
+    bg: 'rgba(156, 39, 176, 0.15)', 
+    border: '#9c27b0', 
+    text: '#ba68c8',
     icon: Trophy,
     label: 'Mensuelle'
   },
   special: { 
-    bg: 'rgba(233, 30, 99, 0.15)', 
-    border: '#e91e63', 
-    text: '#f06292',
-    icon: Trophy,
+    bg: 'rgba(255, 87, 34, 0.15)', 
+    border: '#ff5722', 
+    text: '#ff8a65',
+    icon: Target,
     label: 'Spéciale'
   }
 };
 
-const formatTimeRemaining = (timeMs: number): string => {
-  if (timeMs === Infinity || timeMs > 31536000000) return 'Permanent'; // Plus d'1 an
-  if (timeMs <= 0) return 'Expiré';
-  
-  const totalSeconds = Math.floor(timeMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  if (hours > 24) {
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return `${days}j ${remainingHours}h`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
-  } else {
-    return `${seconds}s`;
-  }
-};
+const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = false }) => {
+  const [isCompleting, setIsCompleting] = useState(false);
 
-export const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = false }) => {
-  const [isCompleting, setIsCompleting] = React.useState(false);
+  // Support pour les deux formats de données (Quest et quest)
+  const questData = (quest as any).Quest || (quest as any).quest || quest;
+
+  // Vérification de sécurité
+  if (!questData) {
+    console.warn('QuestCard: questData is undefined', quest);
+    return null;
+  }
 
   const handleComplete = async () => {
     setIsCompleting(true);
     try {
       const progress = {
-        action: quest.quest.requirements.action,
-        count: quest.quest.requirements.count,
+        action: questData.requirements?.action || 'complete',
+        count: questData.requirements?.count || 1,
         completed: true
       };
       
-      const success = await onComplete(quest.id, progress);
-      if (success) {
-        // Quest completed successfully
+      const success = await onComplete(questData.id, progress);
+      if (!success) {
+        console.error('Failed to complete quest');
       }
     } catch (error) {
-      console.error('Erreur lors de la complétion:', error);
+      console.error('Error completing quest:', error);
     } finally {
       setIsCompleting(false);
     }
   };
 
-  const progressPercentage = quest.quest.requirements.count > 0 
-    ? ((quest.progress?.count || 0) / quest.quest.requirements.count) * 100
-    : 0;
+  const getDifficultyStyle = (difficulty: string) => {
+    return difficultyColors[difficulty as keyof typeof difficultyColors] || difficultyColors.easy;
+  };
 
-  const typeStyle = typeStyles[quest.quest.type as keyof typeof typeStyles];
-  const difficultyColor = difficultyColors[quest.quest.difficulty as keyof typeof difficultyColors];
+  const getTypeStyle = (type: string) => {
+    return typeStyles[type as keyof typeof typeStyles] || typeStyles.daily;
+  };
+
+  const difficultyStyle = getDifficultyStyle(questData.difficulty || 'easy');
+  const typeStyle = getTypeStyle(questData.type || 'daily');
   const TypeIcon = typeStyle.icon;
 
+  const formatRequirements = () => {
+    if (!questData.requirements) return 'Compléter la quête';
+    
+    const { action, count, target } = questData.requirements;
+    
+    if (action && count) {
+      return `${action.charAt(0).toUpperCase() + action.slice(1)} ${count} ${target || 'fois'}`;
+    }
+    
+    return questData.description || 'Compléter la quête';
+  };
+
+  const getProgressPercentage = () => {
+    if (!quest.progress || !questData.requirements?.count) return 0;
+    const current = quest.progress.count || 0;
+    const total = questData.requirements.count;
+    return Math.min((current / total) * 100, 100);
+  };
+
+  const isCompleted = quest.progress?.completed;
+  const progressPercentage = getProgressPercentage();
+
+  if (compact) {
+    return (
+      <div className="flex items-center justify-between p-3 bg-gray-900/40 border border-gray-700/50 rounded-lg hover:bg-gray-800/50 transition-colors">
+        <div className="flex items-center space-x-3">
+          <div 
+            className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: typeStyle.bg, border: `1px solid ${typeStyle.border}` }}
+          >
+            <TypeIcon className="w-4 h-4" style={{ color: typeStyle.text }} />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-white truncate max-w-48">
+              {questData.title || 'Quête sans titre'}
+            </h3>
+            <p className="text-xs text-gray-400">
+              {formatRequirements()}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Badge 
+            variant="outline" 
+            className="text-xs"
+            style={{ 
+              backgroundColor: difficultyStyle.bg, 
+              borderColor: difficultyStyle.border, 
+              color: difficultyStyle.text 
+            }}
+          >
+            {questData.difficulty || 'easy'}
+          </Badge>
+          
+          {isCompleted ? (
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+          ) : (
+            <Button
+              size="sm"
+              onClick={handleComplete}
+              disabled={isCompleting}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-7"
+            >
+              {isCompleting ? (
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <PlayCircle className="w-3 h-3" />
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Card className={`quest-card pixel-card relative transition-all duration-300 hover:shadow-lg overflow-hidden ${
-      compact ? 'h-auto min-h-[240px]' : 'h-auto min-h-[260px] max-h-[300px]'
-    }`} style={{
-      background: 'rgba(26, 0, 51, 0.9)',
-      border: `2px solid ${typeStyle.border}`,
-      boxShadow: `0 8px 32px ${typeStyle.bg}`,
-      borderRadius: '15px'
-    }}>
-      {/* Header avec type et difficulté */}
-      <div className="relative px-3 py-2" style={{
-        background: typeStyle.bg,
-        borderBottom: `1px solid ${typeStyle.border}`
-      }}>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1">
-            <TypeIcon className="w-3 h-3" style={{ color: typeStyle.text }} />
+    <Card className="bg-gray-900/60 border-gray-700/50 hover:bg-gray-800/70 transition-all duration-300 hover:border-gray-600/50">
+      <CardContent className="p-6">
+        {/* En-tête avec type et difficulté */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: typeStyle.bg, border: `1px solid ${typeStyle.border}` }}
+            >
+              <TypeIcon className="w-4 h-4" style={{ color: typeStyle.text }} />
+            </div>
             <Badge 
-              className="quest-type-badge text-xs font-pixel border"
-              style={{
-                background: typeStyle.bg,
-                border: `1px solid ${typeStyle.border}`,
-                color: typeStyle.text,
-                fontSize: '0.6rem',
-                padding: '1px 4px'
+              variant="outline" 
+              style={{ 
+                backgroundColor: typeStyle.bg, 
+                borderColor: typeStyle.border, 
+                color: typeStyle.text 
               }}
             >
               {typeStyle.label}
             </Badge>
           </div>
+          
           <Badge 
-            className="quest-type-badge text-xs font-pixel border"
-            style={{
-              background: difficultyColor.bg,
-              border: `1px solid ${difficultyColor.border}`,
-              color: difficultyColor.text,
-              fontSize: '0.6rem',
-              padding: '1px 4px'
+            variant="outline" 
+            style={{ 
+              backgroundColor: difficultyStyle.bg, 
+              borderColor: difficultyStyle.border, 
+              color: difficultyStyle.text 
             }}
           >
-            {quest.quest.difficulty.toUpperCase()}
+            {(questData.difficulty || 'easy').toUpperCase()}
           </Badge>
         </div>
-        
-        <CardTitle className="font-pixel text-sm leading-tight" style={{ 
-          color: '#ffffff',
-          fontSize: '0.9rem',
-          lineHeight: '1.2',
-          height: '2rem',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>
-          {quest.quest.title}
+
+        {/* Titre et description */}
+        <CardTitle className="text-xl font-bold text-white mb-2 leading-tight">
+          {questData.title || 'Quête sans titre'}
         </CardTitle>
-      </div>
+        
+        <CardDescription className="text-gray-300 mb-4 leading-relaxed">
+          {questData.description || 'Aucune description disponible'}
+        </CardDescription>
 
-      <CardContent className="p-3 flex flex-col justify-between h-full" style={{ minHeight: 'calc(100% - 65px)' }}>
-        <div className="space-y-2 flex-shrink-1 overflow-hidden">
-          {/* Description */}
-          <CardDescription 
-            className="text-xs font-mono leading-snug"
-            style={{ 
-              color: '#9d4edd',
-              height: '2rem',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              fontSize: '0.75rem',
-              lineHeight: '1.2'
-            }}
-          >
-            {quest.quest.description}
-          </CardDescription>
-
-          {/* Récompense XP */}
-          <div className="flex items-center justify-center py-1 px-2 rounded-md" style={{
-            background: 'rgba(255, 0, 110, 0.15)',
-            border: '1px solid #ff006e'
-          }}>
-            <Trophy className="w-3 h-3 mr-1" style={{ color: '#ff006e' }} />
-            <span className="font-pixel text-sm font-bold" style={{ color: '#ff006e' }}>
-              {quest.quest.xp_reward} XP
-            </span>
-            {quest.streak_bonus > 0 && (
-              <span className="ml-1 text-xs" style={{ color: '#ffbe0b' }}>
-                🔥 +{quest.streak_bonus}
-              </span>
-            )}
+        {/* Objectifs */}
+        <div className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 mb-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Target className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-medium text-blue-400">Objectif</span>
           </div>
-
-          {/* Progression */}
-          {quest.quest.requirements.count > 1 && (
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-mono" style={{ color: '#ffffff' }}>
-                <span>Progression</span>
-                <span>{quest.progress?.count || 0} / {quest.quest.requirements.count}</span>
-              </div>
-              <div className="quest-progress h-1.5 rounded-full overflow-hidden" style={{
-                background: 'rgba(26, 0, 51, 0.8)',
-                border: '1px solid #8338ec'
-              }}>
-                <div 
-                  className="h-full transition-all duration-300"
-                  style={{ 
-                    width: `${progressPercentage}%`,
-                    background: `linear-gradient(90deg, ${typeStyle.border}, #ff006e)`
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          <p className="text-sm text-gray-300">
+            {formatRequirements()}
+          </p>
         </div>
 
-        {/* Footer avec temps et action - toujours visible */}
-        <div className="flex-shrink-0 space-y-2 mt-2 pt-2 border-t" style={{ 
-          borderColor: 'rgba(157, 78, 221, 0.3)',
-          minHeight: '60px'
-        }}>
-          {/* Temps restant */}
-          <div className="flex items-center justify-center gap-1 text-xs font-mono" style={{ 
-            color: quest.time_remaining <= 7200000 ? '#ff1744' :      // Moins de 2h (rouge)
-                   quest.time_remaining <= 43200000 ? '#ff9800' :     // Moins de 12h (orange)
-                   quest.time_remaining <= 86400000 ? '#ffc107' :     // Moins de 24h (jaune)
-                   '#9d4edd'                                          // Plus de 24h (violet)
-          }}>
-            <Clock className="w-3 h-3" />
-            <span>{formatTimeRemaining(quest.time_remaining)}</span>
-            {quest.time_remaining <= 7200000 && quest.time_remaining > 0 && (      // Moins de 2h
-              <span className="animate-pulse">⚠️</span>
-            )}
-            {quest.time_remaining <= 0 && (
-              <span className="animate-pulse">❌</span>
+        {/* Barre de progression */}
+        {!isCompleted && questData.requirements?.count && (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-400">Progression</span>
+              <span className="text-sm text-gray-400">
+                {quest.progress?.count || 0} / {questData.requirements.count}
+              </span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Récompenses */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              <Trophy className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm text-yellow-400 font-medium">
+                {questData.xpReward || 0} XP
+              </span>
+            </div>
+            {questData.coinReward && (
+              <div className="flex items-center space-x-1">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full" />
+                <span className="text-sm text-yellow-400 font-medium">
+                  {questData.coinReward} pièces
+                </span>
+              </div>
             )}
           </div>
+        </div>
 
-          {/* Bouton d'action */}
+        {/* Bouton d'action */}
+        {isCompleted ? (
+          <div className="flex items-center justify-center py-3 bg-green-900/30 border border-green-600/30 rounded-lg">
+            <CheckCircle2 className="w-5 h-5 text-green-400 mr-2" />
+            <span className="text-green-400 font-medium">Quête terminée</span>
+          </div>
+        ) : (
           <Button
-            size="sm"
             onClick={handleComplete}
             disabled={isCompleting}
-            className="quest-complete-btn w-full cyberpunk-btn pixel-btn font-pixel"
-            style={{
-              background: isCompleting ? 'rgba(255, 0, 110, 0.3)' : 'transparent',
-              border: '2px solid #ff006e',
-              color: '#ff006e',
-              fontSize: '0.75rem',
-              height: '28px',
-              borderRadius: '6px',
-              padding: '0 8px',
-              flexShrink: 0
-            }}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105"
           >
             {isCompleting ? (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1 animate-spin" />
-                En cours...
-              </>
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Completion en cours...
+              </div>
             ) : (
-              <>
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Compléter
-              </>
+              <div className="flex items-center justify-center">
+                <PlayCircle className="w-5 h-5 mr-2" />
+                Terminer la quête
+              </div>
             )}
           </Button>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
 };
+
+export default QuestCard;

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -99,36 +99,73 @@ export const advancedQuestApi = {
     };
     stats: QuestStats;
   }> => {
-    const response = await api.get('/advanced-quests/active');
-    return response.data.data;
+    const response = await api.get('/api/quests/user');
+    const userQuests = response.data.data || [];
+    
+    // Organiser les quêtes par type
+    const questsByType: {
+      daily: UserQuest[];
+      weekly: UserQuest[];
+      monthly: UserQuest[];
+      special: UserQuest[];
+    } = {
+      daily: [],
+      weekly: [],
+      monthly: [],
+      special: []
+    };
+    
+    userQuests.forEach((userQuest: any) => {
+      if (userQuest.Quest) {
+        const type = userQuest.Quest.type as keyof typeof questsByType;
+        if (questsByType[type]) {
+          questsByType[type].push(userQuest);
+        }
+      }
+    });
+    
+    return {
+      quests: questsByType,
+      stats: {
+        total_active: userQuests.length,
+        by_type: {
+          daily: questsByType.daily.length,
+          weekly: questsByType.weekly.length,
+          monthly: questsByType.monthly.length,
+          special: questsByType.special.length
+        },
+        completion_rate: 0, // À calculer si nécessaire
+        current_streak: 0  // À récupérer du dashboard si nécessaire
+      }
+    };
   },
 
   // Compléter une quête
   completeQuest: async (questId: string, progress: Record<string, any>) => {
-    const response = await api.post(`/advanced-quests/${questId}/complete`, { progress });
+    const response = await api.put(`/api/quests/${questId}/complete`, { progress });
     return response.data;
   },
 
   // Récupérer l'historique des quêtes
   getQuestHistory: async (page = 1, limit = 20) => {
-    const response = await api.get(`/advanced-quests/history?page=${page}&limit=${limit}`);
+    const response = await api.get(`/api/quests/user?page=${page}&limit=${limit}`);
     return response.data.data;
   },
 
   // Récupérer les cycles actifs
   getActiveCycles: async (): Promise<QuestCycle[]> => {
-    const response = await api.get('/advanced-quests/cycles');
+    const response = await api.get('/api/quests/cycles');
     return response.data.data;
   },
 
   // API Admin
   getAdminStats: async () => {
-    const response = await api.get('/advanced-quests/admin/stats');
+    const response = await api.get('/api/admin/stats');
     return response.data.data;
   },
 
   forceAssignQuests: async () => {
-    const response = await api.post('/advanced-quests/admin/force-assign');
+    const response = await api.post('/api/admin/force-assign');
     return response.data;
   }
 };

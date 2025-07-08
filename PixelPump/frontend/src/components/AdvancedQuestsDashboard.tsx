@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
-import { QuestCard } from './QuestCard';
+import QuestCard from './QuestCard';
 import { 
   Sword, 
   Target, 
@@ -29,13 +29,18 @@ export const AdvancedQuestsDashboard: React.FC = () => {
   };
 
   const getQuestsForTab = () => {
+    // Vérification de sécurité
+    if (!activeQuests) {
+      return [];
+    }
+    
     let quests;
     if (activeTab === 'all') {
       quests = [
-        ...activeQuests.daily,
-        ...activeQuests.weekly,
-        ...activeQuests.monthly,
-        ...activeQuests.special
+        ...(activeQuests.daily || []),
+        ...(activeQuests.weekly || []),
+        ...(activeQuests.monthly || []),
+        ...(activeQuests.special || [])
       ];
     } else {
       quests = activeQuests[activeTab] || [];
@@ -51,8 +56,13 @@ export const AdvancedQuestsDashboard: React.FC = () => {
     
     // Trier les quêtes par difficulté croissante
     const sortedQuests = quests.sort((a, b) => {
-      const difficultyA = difficultyOrder[a.quest.difficulty as keyof typeof difficultyOrder] || 5;
-      const difficultyB = difficultyOrder[b.quest.difficulty as keyof typeof difficultyOrder] || 5;
+      const questA = (a as any).Quest || a.quest;
+      const questB = (b as any).Quest || b.quest;
+      
+      if (!questA || !questB) return 0;
+      
+      const difficultyA = difficultyOrder[questA.difficulty as keyof typeof difficultyOrder] || 5;
+      const difficultyB = difficultyOrder[questB.difficulty as keyof typeof difficultyOrder] || 5;
       return difficultyA - difficultyB;
     });
     
@@ -61,13 +71,18 @@ export const AdvancedQuestsDashboard: React.FC = () => {
   };
 
   const getTotalQuestsForTab = () => {
+    // Vérification de sécurité
+    if (!activeQuests) {
+      return 0;
+    }
+    
     let quests;
     if (activeTab === 'all') {
       quests = [
-        ...activeQuests.daily,
-        ...activeQuests.weekly,
-        ...activeQuests.monthly,
-        ...activeQuests.special
+        ...(activeQuests.daily || []),
+        ...(activeQuests.weekly || []),
+        ...(activeQuests.monthly || []),
+        ...(activeQuests.special || [])
       ];
     } else {
       quests = activeQuests[activeTab] || [];

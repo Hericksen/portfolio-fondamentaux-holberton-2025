@@ -27,6 +27,26 @@ const Login: React.FC = () => {
     }
   };
 
+  // Fonction de test rapide
+  const handleQuickLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    console.log('🚀 Test de connexion rapide avec admin/admin123...');
+
+    try {
+      const result = await login({ email: 'admin@pixelpump.com', password: 'admin123' });
+      console.log('📊 Résultat login:', result);
+      if (!result.success) {
+        setError(result.message || 'Invalid credentials. Please try again.');
+      }
+    } catch (err) {
+      console.error('❌ Erreur login:', err);
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -220,6 +240,29 @@ const Login: React.FC = () => {
             }}
           >
             {isLoading ? 'CONNEXION...' : 'SE CONNECTER'}
+          </button>
+
+          {/* Bouton de test rapide */}
+          <button
+            type="button"
+            onClick={handleQuickLogin}
+            disabled={isLoading}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: 'transparent',
+              border: '1px solid #06ffa5',
+              color: '#06ffa5',
+              borderRadius: '5px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              marginBottom: '20px',
+              opacity: isLoading ? 0.5 : 1
+            }}
+          >
+            🚀 Test Rapide (Admin)
           </button>
         </form>
 

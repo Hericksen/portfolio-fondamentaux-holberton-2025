@@ -127,13 +127,16 @@ export const useDashboard = () => {
       
       // Vérifier si l'utilisateur est connecté
       const token = localStorage.getItem('token');
+      console.log('🔑 Token trouvé:', token ? `${token.substring(0, 50)}...` : 'Aucun token');
       
       if (!token) {
         setError('Vous devez être connecté pour accéder au dashboard');
         return;
       }
       
-      const response = await api.get('/users/dashboard/me');
+      console.log('📡 Tentative de récupération du dashboard...');
+      const response = await api.get('/api/users/dashboard/me');
+      console.log('✅ Réponse reçue:', response.data);
       
       if (response.data.success) {
         setDashboardData(response.data.data);
@@ -146,11 +149,14 @@ export const useDashboard = () => {
       console.error('🔗 Base URL:', api.defaults.baseURL);
       console.error('📊 Status:', err.response?.status);
       console.error('📄 Data:', err.response?.data);
+      console.error('🔑 Headers sent:', err.config?.headers);
       
       if (err.response?.status === 404) {
         setError('Route dashboard non trouvée - Vérifiez que le backend est à jour');
       } else if (err.response?.status === 401) {
         setError('Session expirée - Veuillez vous reconnecter');
+        // Nettoyer le token invalide
+        localStorage.removeItem('token');
       } else {
         setError(err.response?.data?.message || 'Erreur de connexion');
       }

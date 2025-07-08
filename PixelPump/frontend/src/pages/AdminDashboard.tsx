@@ -137,7 +137,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/users');
+      const response = await api.get('/api/users');
       setUsers(response.data.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
@@ -148,7 +148,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchQuests = async () => {
     try {
-      const response = await api.get('/quests');
+      const response = await api.get('/api/quests');
       setQuests(response.data.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des quêtes:', error);
@@ -157,7 +157,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchAchievements = async () => {
     try {
-      const response = await api.get('/achievements');
+      const response = await api.get('/api/achievements');
       setAchievements(response.data.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des achievements:', error);
@@ -166,7 +166,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/database/stats');
+      const response = await api.get('/api/database/stats');
       setStats(response.data.data || null);
     } catch (error) {
       // Stats endpoint might not exist, calculate manually
@@ -290,7 +290,7 @@ const AdminDashboard: React.FC = () => {
       setLoading(true);
 
       if (questModalMode === 'create') {
-        await api.post('/admin/quests', questData);
+        await api.post('/api/admin/quests', questData);
         setNotification('✅ Quête créée avec succès !');
       } else {
         await api.put(`/admin/quests/${questData.id}`, questData);
@@ -348,7 +348,7 @@ const AdminDashboard: React.FC = () => {
       setLoading(true);
 
       if (achievementModalMode === 'create') {
-        await api.post('/admin/achievements', achievementData);
+        await api.post('/api/admin/achievements', achievementData);
         setNotification('✅ Trophée créé avec succès !');
       } else {
         await api.put(`/admin/achievements/${achievementData.id}`, achievementData);

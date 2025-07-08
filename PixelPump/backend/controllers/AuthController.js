@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const UserService = require('../services/UserService');
-const DemoQuestService = require('../services/DemoQuestService');
+const QuestInitializationService = require('../services/QuestInitializationService');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 

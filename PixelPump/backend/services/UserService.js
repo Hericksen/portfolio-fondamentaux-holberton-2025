@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-const NewUserQuestService = require('./NewUserQuestService');
+const QuestInitializationService = require('./QuestInitializationService');
 
 class UserService {
   // Profil par défaut pour un nouvel utilisateur
@@ -51,7 +51,7 @@ class UserService {
 
     // Assigner automatiquement des quêtes adaptées au niveau du nouvel utilisateur
     try {
-      const questAssignment = await NewUserQuestService.assignQuestsForNewUser(user.id, user.level || 1);
+      const questAssignment = await QuestInitializationService.assignQuestsToUser(user.id, user.level || 1);
       if (questAssignment.success) {
         console.log(`🎯 Quêtes assignées automatiquement au nouvel utilisateur ${data.username}`);
       }
@@ -76,7 +76,7 @@ class UserService {
 
     // Assigner automatiquement des quêtes adaptées au niveau du nouvel utilisateur
     try {
-      const questAssignment = await NewUserQuestService.assignQuestsForNewUser(user.id, user.level || 1);
+      const questAssignment = await QuestInitializationService.assignQuestsToUser(user.id, user.level || 1);
       if (questAssignment.success) {
         console.log(`🎯 Quêtes assignées automatiquement au nouvel utilisateur ${username}`);
       } else {

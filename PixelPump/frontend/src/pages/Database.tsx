@@ -54,7 +54,7 @@ const Database: React.FC = () => {
         localStorage.setItem('token', tokenToCheck);
       }
       
-      const response = await api.get('/database');
+      const response = await api.get('/api/database');
       setAdminInfo(response.data.adminInfo);
       setIsAuthenticated(true);
       return true;
@@ -74,7 +74,7 @@ const Database: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/auth/admin-token', {
+      const response = await api.post('/api/auth/admin-token', {
         adminSecret: adminSecret
       });
 
@@ -100,17 +100,10 @@ const Database: React.FC = () => {
     setError('');
 
     try {
-      const endpoint = `http://localhost:3001/api/database/${tableName}`;
+      const response = await api.get(`/api/database/${tableName}`);
 
-      const response = await fetch(endpoint, {
-        headers: {
-          'Authorization': `Bearer ${adminToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
+      if (response.status === 200) {
+        const result = response.data;
         if (tableName === 'stats') {
           setStats(result.data);
           setTableData([]);
@@ -120,8 +113,7 @@ const Database: React.FC = () => {
         }
         setSelectedTable(tableName);
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || `Erreur lors du chargement de ${tableName}`);
+        setError(response.data.message || `Erreur lors du chargement de ${tableName}`);
       }
     } catch (err) {
       setError(`Erreur de connexion pour ${tableName}`);

@@ -78,20 +78,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (credentials: { email: string; password: string }): Promise<AuthResult> => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      console.log('🔐 Tentative de connexion avec:', credentials.email);
+      const response = await api.post('/api/auth/login', credentials);
+      console.log('📡 Réponse serveur:', response.data);
       
       if (response.data.success) {
         const userData = response.data.user;
         const token = response.data.token;
         
+        console.log('✅ Connexion réussie, sauvegarde des données...');
+        console.log('👤 Utilisateur:', userData.username);
+        console.log('🔑 Token:', token.substring(0, 50) + '...');
+        
         setUser(userData);
         localStorage.setItem('pixelpump_user', JSON.stringify(userData));
         localStorage.setItem('token', token);
+        
+        console.log('💾 Données sauvegardées dans localStorage');
         return { success: true };
       }
       return { success: false, message: response.data.message || 'Échec de la connexion' };
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Erreur login:', error);
       const message = error.response?.data?.message || 'Erreur de connexion';
       return { success: false, message };
     }
@@ -99,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: { email: string; password: string; username: string }): Promise<AuthResult> => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/api/auth/register', userData);
       
       if (response.data.success) {
         const userInfo = response.data.user;

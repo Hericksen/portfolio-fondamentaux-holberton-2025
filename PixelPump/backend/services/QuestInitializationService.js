@@ -79,7 +79,7 @@ class QuestInitializationService {
       {
         title: 'Personnalisateur créatif',
         description: 'Modifiez votre avatar',
-        category: 'customization',
+        category: 'social',
         type: 'daily',
         xp_reward: 35,
         difficulty: 'easy',
@@ -93,7 +93,7 @@ class QuestInitializationService {
       {
         title: 'Habitué de la semaine',
         description: 'Connectez-vous 5 jours cette semaine',
-        category: 'engagement',
+        category: 'social',
         type: 'weekly',
         xp_reward: 100,
         difficulty: 'easy',
@@ -105,7 +105,7 @@ class QuestInitializationService {
       {
         title: 'Collectionneur d\'XP',
         description: 'Gagnez 200 XP cette semaine',
-        category: 'progression',
+        category: 'challenge',
         type: 'weekly',
         xp_reward: 150,
         difficulty: 'medium',
@@ -119,7 +119,7 @@ class QuestInitializationService {
       {
         title: 'Maître du mois',
         description: 'Complétez 20 quêtes ce mois-ci',
-        category: 'achievement',
+        category: 'challenge',
         type: 'monthly',
         xp_reward: 500,
         difficulty: 'hard',
