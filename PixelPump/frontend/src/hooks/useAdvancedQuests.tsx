@@ -19,11 +19,12 @@ interface UseAdvancedQuestsReturn {
   
   // Actions
   refreshQuests: () => Promise<void>;
+  renewQuests: () => Promise<boolean>;
   completeQuest: (questId: string, progress: Record<string, any>) => Promise<boolean>;
   loadHistory: (page?: number) => Promise<void>;
 }
 
-export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
+export const useAdvancedQuests = (onUserDataChange?: () => Promise<void>): UseAdvancedQuestsReturn => {
   const [activeQuests, setActiveQuests] = useState<{
     daily: UserQuest[];
     weekly: UserQuest[];
@@ -62,12 +63,31 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
   const completeQuest = useCallback(async (questId: string, progress: Record<string, any>): Promise<boolean> => {
     try {
       setError(null);
+      console.log('Attempting to complete quest:', questId, 'with progress:', progress);
+      
+      // Sauvegarder la position de défilement actuelle
+      const scrollPosition = window.scrollY;
       
       const result = await advancedQuestApi.completeQuest(questId, progress);
+      console.log('Quest completion result:', result);
       
       if (result.success) {
+        console.log('Quest completed successfully, XP gained:', result.data?.xpGained);
         // Rafraîchir les quêtes après complétion
         await refreshQuests();
+        // Rafraîchir les données utilisateur si la fonction est fournie
+        if (onUserDataChange) {
+          await onUserDataChange();
+        }
+        
+        // Restaurer la position de défilement
+        setTimeout(() => {
+          window.scrollTo({
+            top: scrollPosition,
+            behavior: 'auto'
+          });
+        }, 100);
+        
         return true;
       }
       
@@ -78,6 +98,35 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
       return false;
     }
   }, [refreshQuests]);
+
+  // Renouveler les quêtes (pour utilisateurs demo/admin)
+  const renewQuests = useCallback(async (): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const result = await advancedQuestApi.renewQuests();
+      
+      if (result.success) {
+        console.log('Quêtes renouvelées avec succès:', result.data);
+        // Rafraîchir les quêtes après renouvellement
+        await refreshQuests();
+        // Rafraîchir les données utilisateur si la fonction est fournie
+        if (onUserDataChange) {
+          await onUserDataChange();
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du renouvellement des quêtes');
+      console.error('Erreur renouvellement quêtes:', err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshQuests, onUserDataChange]);
 
   // Charger l'historique
   const loadHistory = useCallback(async (page = 1) => {
@@ -146,6 +195,7 @@ export const useAdvancedQuests = (): UseAdvancedQuestsReturn => {
     error,
     refreshQuests,
     completeQuest,
+    renewQuests,
     loadHistory
   };
 };

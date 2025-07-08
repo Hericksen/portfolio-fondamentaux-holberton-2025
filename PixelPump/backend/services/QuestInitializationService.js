@@ -109,7 +109,7 @@ class QuestInitializationService {
         type: 'weekly',
         xp_reward: 150,
         difficulty: 'medium',
-        min_level: 2,
+        min_level: 1,
         is_template: true,
         is_active: true,
         requirements: { action: 'earn_xp', count: 200 }
@@ -123,7 +123,7 @@ class QuestInitializationService {
         type: 'monthly',
         xp_reward: 500,
         difficulty: 'hard',
-        min_level: 3,
+        min_level: 1,
         is_template: true,
         is_active: true,
         requirements: { action: 'complete_quests', count: 20 }
@@ -194,7 +194,8 @@ class QuestInitializationService {
       console.log(`   Quêtes existantes: ${existingUserQuests.length}`);
 
       // Si l'utilisateur a déjà suffisamment de quêtes et ce n'est pas un reset forcé, ne rien faire
-      if (!forceReset && existingUserQuests.length >= 3) {
+      // Minimum requis: 4 quotidiennes + 2 hebdo + 1 mensuelle = 7 quêtes
+      if (!forceReset && existingUserQuests.length >= 7) {
         console.log(`   ✓ Utilisateur a déjà ${existingUserQuests.length} quêtes actives`);
         return { success: true, count: 0, message: 'Quêtes déjà assignées' };
       }
@@ -202,7 +203,8 @@ class QuestInitializationService {
       const questsToAssign = [];
       const existingQuestIds = existingUserQuests.map(uq => uq.quest_id);
 
-      // Quêtes quotidiennes (2-3 selon le niveau)
+      // Quêtes quotidiennes (exactement 4)
+      const dailyQuestsNeeded = 4 - existingUserQuests.filter(uq => uq.Quest?.type === 'daily').length;
       const dailyQuests = await Quest.findAll({
         where: {
           type: 'daily',
@@ -212,16 +214,19 @@ class QuestInitializationService {
           min_level: { [require('sequelize').Op.lte]: userLevel },
           id: { [require('sequelize').Op.notIn]: existingQuestIds }
         },
-        limit: Math.max(0, (userLevel <= 2 ? 2 : 3) - existingUserQuests.filter(uq => uq.Quest?.type === 'daily').length),
+        limit: Math.max(0, dailyQuestsNeeded),
         order: [['id', 'ASC']]
       });
 
       questsToAssign.push(...dailyQuests);
+      console.log(`   🗓️ ${dailyQuests.length} quêtes quotidiennes assignées (${dailyQuestsNeeded} manquantes)`);
 
-      // Quête hebdomadaire (1) si pas déjà assignée
-      const hasWeeklyQuest = existingUserQuests.some(uq => uq.Quest?.type === 'weekly');
-      if (!hasWeeklyQuest) {
-        const weeklyQuest = await Quest.findOne({
+      // Quêtes hebdomadaires (exactement 2)
+      const weeklyQuestsCount = existingUserQuests.filter(uq => uq.Quest?.type === 'weekly').length;
+      const weeklyQuestsNeeded = 2 - weeklyQuestsCount;
+      
+      if (weeklyQuestsNeeded > 0) {
+        const weeklyQuests = await Quest.findAll({
           where: {
             type: 'weekly',
             difficulty: userLevel <= 3 ? 'easy' : ['easy', 'medium'],
@@ -229,32 +234,34 @@ class QuestInitializationService {
             is_active: true,
             min_level: { [require('sequelize').Op.lte]: userLevel },
             id: { [require('sequelize').Op.notIn]: existingQuestIds }
-          }
+          },
+          limit: weeklyQuestsNeeded,
+          order: [['id', 'ASC']]
         });
 
-        if (weeklyQuest) {
-          questsToAssign.push(weeklyQuest);
-        }
+        questsToAssign.push(...weeklyQuests);
+        console.log(`   📅 ${weeklyQuests.length} quêtes hebdomadaires assignées (${weeklyQuestsNeeded} manquantes)`);
       }
 
-      // Quête mensuelle pour les niveaux 3+ si pas déjà assignée
-      if (userLevel >= 3) {
-        const hasMonthlyQuest = existingUserQuests.some(uq => uq.Quest?.type === 'monthly');
-        if (!hasMonthlyQuest) {
-          const monthlyQuest = await Quest.findOne({
-            where: {
-              type: 'monthly',
-              is_template: true,
-              is_active: true,
-              min_level: { [require('sequelize').Op.lte]: userLevel },
-              id: { [require('sequelize').Op.notIn]: existingQuestIds }
-            }
-          });
+      // Quête mensuelle (exactement 1)
+      const monthlyQuestsCount = existingUserQuests.filter(uq => uq.Quest?.type === 'monthly').length;
+      const monthlyQuestsNeeded = 1 - monthlyQuestsCount;
+      
+      if (monthlyQuestsNeeded > 0) {
+        const monthlyQuests = await Quest.findAll({
+          where: {
+            type: 'monthly',
+            is_template: true,
+            is_active: true,
+            min_level: { [require('sequelize').Op.lte]: Math.max(1, userLevel) }, // Même niveau 1 peut avoir une quête mensuelle
+            id: { [require('sequelize').Op.notIn]: existingQuestIds }
+          },
+          limit: monthlyQuestsNeeded,
+          order: [['id', 'ASC']]
+        });
 
-          if (monthlyQuest) {
-            questsToAssign.push(monthlyQuest);
-          }
-        }
+        questsToAssign.push(...monthlyQuests);
+        console.log(`   📆 ${monthlyQuests.length} quêtes mensuelles assignées (${monthlyQuestsNeeded} manquantes)`);
       }
 
       // Créer les assignations seulement si on a de nouvelles quêtes

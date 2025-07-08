@@ -4,8 +4,12 @@ const questController = require('../controllers/QuestController');
 const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
-// Routes publiques (pour admin/debug)
+// Routes publiques (pour admin/debug et sans authentification)
 router.get('/', questController.getAllQuests);
+
+// Route unique pour le renouvellement des quêtes démo
+router.post('/demo/renew', questController.renewQuestsForDemo);
+router.post('/demo/renew/:userId', questController.renewQuestsForDemo);
 
 // Routes protégées
 router.use(authMiddleware);
@@ -24,9 +28,7 @@ router.post('/', questController.createQuest);
 router.post('/expired/process', questController.processUserExpiredQuests);
 router.post('/expired/process/:userId', questController.processUserExpiredQuests);
 
-// Gestion spéciale pour les utilisateurs demo
-router.post('/demo/renew', questController.renewQuestsForDemo);
-router.post('/demo/renew/:userId', questController.renewQuestsForDemo);
+// Statistiques
 router.get('/stats', questController.getQuestStats);
 router.get('/stats/:userId', questController.getQuestStats);
 

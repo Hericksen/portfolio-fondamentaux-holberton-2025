@@ -12,20 +12,102 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-export const AdvancedQuestsDashboard: React.FC = () => {
+interface AdvancedQuestsDashboardProps {
+  onUserDataChange?: () => Promise<void>;
+}
+
+export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = ({ onUserDataChange }) => {
   const {
     activeQuests,
     stats,
-    loading,
+    loading: questsLoading,
     error,
     refreshQuests,
+    renewQuests,
     completeQuest
-  } = useAdvancedQuests();
+  } = useAdvancedQuests(onUserDataChange);
 
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'monthly' | 'all'>('all');
+  const [refreshLoading, setRefreshLoading] = useState<boolean>(false);
+
+  // Fonction pour détecter si l'utilisateur est demo ou admin
+  const isDemoOrAdminUser = (): boolean => {
+    try {
+      const storedUser = localStorage.getItem('pixelpump_user');
+      if (!storedUser) return false;
+      
+      const user = JSON.parse(storedUser);
+      console.log('📊 Vérification utilisateur démo/admin:', user);
+      
+      // Liste de tous les noms d'utilisateurs démo possibles
+      const demoUsernames = ['testuser', 'admin', 'demo', 'NewbiePumper', 'FitnessGuru', 'CodeWarrior', 'DemoUser'];
+      
+      // Liste des emails démo connus
+      const demoEmails = ['admin@pixelpump.com', 'demo@pixelpump.com'];
+      
+      // Force à true pour tous les utilisateurs (test temporaire)
+      return true;
+      
+      /* Code normal - à réactiver après les tests
+      // Vérifier si le nom d'utilisateur est dans la liste des démos
+      const usernameIsDemoOrAdmin = demoUsernames.includes(user.username);
+      
+      // Vérifier si l'email est dans la liste des démos ou contient 'demo'
+      const emailIsDemoOrAdmin = demoEmails.includes(user.email) || 
+                                (user.email && user.email.includes('demo'));
+      
+      // Vérifier si le rôle est admin
+      const roleIsAdmin = user.role === 'admin';
+      
+      const isDemoUser = usernameIsDemoOrAdmin || emailIsDemoOrAdmin || roleIsAdmin;
+      
+      console.log('🎭 Détection démo:', {
+        usernameIsDemoOrAdmin,
+        emailIsDemoOrAdmin,
+        roleIsAdmin,
+        isDemoUser
+      });
+      
+      return isDemoUser;
+      */
+    } catch (error) {
+      console.error('Erreur lors de la vérification du type d\'utilisateur:', error);
+      return false;
+    }
+  };
 
   const handleRefresh = async () => {
-    await refreshQuests();
+    console.log('🔄 Clic sur le bouton Actualiser');
+    
+    try {
+      // Désactiver le bouton pendant la requête
+      setRefreshLoading(true);
+      
+      // Forcer le renouvellement des quêtes
+      console.log('🎮 Tentative de renouvellement des quêtes via le service indépendant...');
+      const success = await renewQuests();
+      console.log('✅ Résultat:', success);
+      
+      // Actualiser l'affichage et montrer un retour
+      setActiveTab('all');
+      
+      if (success) {
+        alert(`✅ Succès! Nouvelles quêtes assignées.`);
+      } else {
+        alert('⚠️ Les quêtes n\'ont pas pu être renouvelées.');
+      }
+      
+      // Attendre un peu pour que l'utilisateur voie le message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Rafraîchir les quêtes à l'écran
+      await refreshQuests();
+    } catch (error) {
+      console.error('❌ Erreur lors du renouvellement:', error);
+      alert('❌ Erreur lors du renouvellement des quêtes. Veuillez réessayer plus tard.');
+    } finally {
+      setRefreshLoading(false);
+    }
   };
 
   const getQuestsForTab = () => {
@@ -153,18 +235,18 @@ export const AdvancedQuestsDashboard: React.FC = () => {
           <div className="flex items-center justify-center w-full">
             <Button 
               onClick={handleRefresh} 
-              disabled={loading}
+              disabled={refreshLoading || questsLoading}
               className="cyberpunk-btn pixel-btn font-pixel"
               size="sm"
               style={{
                 background: 'transparent',
-                border: '2px solid #8338ec',
-                color: '#8338ec',
+                border: `2px solid ${isDemoOrAdminUser() ? '#ff006e' : '#8338ec'}`,
+                color: isDemoOrAdminUser() ? '#ff006e' : '#8338ec',
                 fontSize: '0.75rem'
               }}
             >
-              <RefreshCw className={`w-3 h-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
-              Actualiser
+              <RefreshCw className={`w-3 h-3 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
+              {refreshLoading ? 'Chargement...' : 'Nouvelles Quêtes'}
             </Button>
           </div>
           
@@ -218,7 +300,7 @@ export const AdvancedQuestsDashboard: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          {loading ? (
+          {questsLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="pixel-spinner mr-4"></div>
               <span className="font-mono" style={{ color: '#9d4edd' }}>Chargement des quêtes...</span>
@@ -236,7 +318,7 @@ export const AdvancedQuestsDashboard: React.FC = () => {
           )}
           
           {/* Indicateur s'il y a plus de 9 quêtes */}
-          {!loading && getTotalQuestsForTab() > 9 && (
+          {!questsLoading && getTotalQuestsForTab() > 9 && (
             <div className="text-center mt-4" style={{
               background: 'rgba(255, 0, 110, 0.1)',
               borderRadius: '10px',
@@ -251,7 +333,7 @@ export const AdvancedQuestsDashboard: React.FC = () => {
             </div>
           )}
 
-          {!loading && getQuestsForTab().length === 0 && (
+          {!questsLoading && getQuestsForTab().length === 0 && (
             <div className="text-center py-12" style={{ 
               background: 'rgba(131, 56, 236, 0.1)',
               borderRadius: '15px',

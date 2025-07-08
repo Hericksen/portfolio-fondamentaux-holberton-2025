@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -116,7 +116,8 @@ export const advancedQuestApi = {
     };
     
     userQuests.forEach((userQuest: any) => {
-      if (userQuest.Quest) {
+      // Ne prendre que les quêtes non complétées
+      if (userQuest.Quest && !userQuest.is_completed) {
         const type = userQuest.Quest.type as keyof typeof questsByType;
         if (questsByType[type]) {
           questsByType[type].push(userQuest);
@@ -124,10 +125,12 @@ export const advancedQuestApi = {
       }
     });
     
+    const activeQuests = userQuests.filter((userQuest: any) => !userQuest.is_completed);
+    
     return {
       quests: questsByType,
       stats: {
-        total_active: userQuests.length,
+        total_active: activeQuests.length,
         by_type: {
           daily: questsByType.daily.length,
           weekly: questsByType.weekly.length,
@@ -142,7 +145,9 @@ export const advancedQuestApi = {
 
   // Compléter une quête
   completeQuest: async (questId: string, progress: Record<string, any>) => {
+    console.log('API: Completing quest with ID:', questId, 'Progress:', progress);
     const response = await api.put(`/api/quests/${questId}/complete`, { progress });
+    console.log('API: Quest completion response:', response.data);
     return response.data;
   },
 
@@ -156,6 +161,28 @@ export const advancedQuestApi = {
   getActiveCycles: async (): Promise<QuestCycle[]> => {
     const response = await api.get('/api/quests/cycles');
     return response.data.data;
+  },
+
+  // Renouveler les quêtes (pour utilisateurs demo/admin)
+  renewQuests: async () => {
+    console.log('🌐 API: Tentative de renouvellement des quêtes démo...');
+    
+    try {
+      // Tenter d'utiliser la route API principale directement
+      console.log('📡 Envoi requête à l\'API principale: http://localhost:3001/api/quests/demo-renew');
+      const response = await axios.post('http://localhost:3001/api/quests/demo-renew');
+      console.log('🌐 API: Réponse de l\'API principale:', response.data);
+      return response.data.success;
+    } catch (error: any) {
+      console.error('🌐 API: Erreur lors du renouvellement:', error);
+      if (error.response) {
+        console.error('📡 Détails de l\'erreur:', {
+          status: error.response.status,
+          data: error.response.data
+        });
+      }
+      throw error;
+    }
   },
 
   // API Admin

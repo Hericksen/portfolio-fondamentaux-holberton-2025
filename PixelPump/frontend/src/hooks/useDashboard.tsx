@@ -165,8 +165,8 @@ export const useDashboard = () => {
     }
   };
 
-  const refreshDashboard = () => {
-    fetchDashboard();
+  const refreshDashboard = async () => {
+    await fetchDashboard();
   };
 
   useEffect(() => {

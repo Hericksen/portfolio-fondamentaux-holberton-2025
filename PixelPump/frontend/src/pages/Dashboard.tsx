@@ -5,8 +5,6 @@ import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
 import { ModernAvatarCustomizer } from '../components/ModernAvatarCustomizer';
-import { AchievementsDisplay } from '../components/AchievementsDisplay';
-import { AchievementsPreview } from '../components/AchievementsPreview';
 import { api } from '../services/api';
 
 function Dashboard() {
@@ -550,58 +548,34 @@ function Dashboard() {
           </div>
         </section>
         
-        {/* Section Achievements */}
+        {/* Section Objectifs Fitness */}
         <section style={{ marginBottom: '30px' }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-            gap: '20px',
-            marginBottom: '20px'
+            background: 'rgba(26, 0, 51, 0.6)',
+            border: '2px solid #06ffa5',
+            borderRadius: '20px',
+            padding: 'clamp(20px, 4vw, 30px)',
+            backdropFilter: 'blur(15px)',
+            boxShadow: '0 8px 32px rgba(6, 255, 165, 0.2)',
+            textAlign: 'center',
+            maxWidth: '600px',
+            margin: '0 auto'
           }}>
-            {/* Aperçu des achievements récents */}
-            <AchievementsPreview
-              className="achievement-preview"
-              maxItems={3}
-              onViewAll={() => {
-                // Scroll to the full achievements display
-                const fullDisplay = document.querySelector('.achievement-display');
-                if (fullDisplay) {
-                  fullDisplay.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            />
-            
-            {/* Autre contenu peut être ajouté ici */}
-            <div style={{
-              background: 'rgba(26, 0, 51, 0.6)',
-              border: '2px solid #06ffa5',
-              borderRadius: '20px',
-              padding: 'clamp(20px, 4vw, 30px)',
-              backdropFilter: 'blur(15px)',
-              boxShadow: '0 8px 32px rgba(6, 255, 165, 0.2)',
-              textAlign: 'center'
+            <h3 style={{
+              color: '#06ffa5',
+              fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
+              fontWeight: 'bold',
+              marginBottom: '20px',
+              textTransform: 'uppercase'
             }}>
-              <h3 style={{
-                color: '#06ffa5',
-                fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
-                fontWeight: 'bold',
-                marginBottom: '20px',
-                textTransform: 'uppercase'
-              }}>
-                🎯 Objectifs Fitness
-              </h3>
-              <div style={{ color: '#b8b8b8', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)' }}>
-                <p>Quêtes quotidiennes cibles : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.daily_quests || 3}</strong></p>
-                <p>XP hebdomadaire cible : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.weekly_xp || 1000}</strong></p>
-                <p>Niveau objectif : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.target_level || 10}</strong></p>
-              </div>
+              🎯 Objectifs Fitness
+            </h3>
+            <div style={{ color: '#b8b8b8', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)' }}>
+              <p>Quêtes quotidiennes cibles : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.daily_quests || 3}</strong></p>
+              <p>XP hebdomadaire cible : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.weekly_xp || 1000}</strong></p>
+              <p>Niveau objectif : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.target_level || 10}</strong></p>
             </div>
           </div>
-          
-          {/* Affichage complet des achievements */}
-          <AchievementsDisplay
-            className="achievement-display"
-          />
         </section>
         
         {/* Section Quêtes Utilisateur */}
@@ -614,7 +588,7 @@ function Dashboard() {
             backdropFilter: 'blur(15px)',
             boxShadow: '0 8px 32px rgba(255, 0, 110, 0.2)'
           }}>
-            <AdvancedQuestsDashboard />
+            <AdvancedQuestsDashboard onUserDataChange={refreshDashboard} />
           </div>
         </section>
         

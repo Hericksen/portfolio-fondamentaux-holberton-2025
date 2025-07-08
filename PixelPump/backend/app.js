@@ -39,6 +39,62 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Route spéciale pour le renouvellement des quêtes démo
+// Ajoutée ici pour garantir qu'elle fonctionne sans authentification
+app.post('/api/quests/demo-renew', async (req, res) => {
+  try {
+    console.log('🎮 Route spéciale de renouvellement des quêtes appelée');
+    
+    // Utiliser l'ID de l'utilisateur démo
+    const userId = 1; // Admin démo par défaut
+    
+    // Importer les modèles et services nécessaires
+    const { User } = require('./models');
+    const LoginQuestService = require('./services/LoginQuestService');
+    
+    // Récupérer l'utilisateur
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur démo non trouvé'
+      });
+    }
+    
+    console.log(`✅ Utilisateur trouvé: ${user.username} (ID: ${user.id})`);
+    
+    // Renouveler les quêtes
+    try {
+      const result = await LoginQuestService.renewQuestsForDemoUser(user);
+      
+      console.log(`✅ Quêtes renouvelées avec succès: ${result.count} nouvelles quêtes`);
+      
+      return res.json({
+        success: true,
+        message: `Quêtes renouvelées avec succès pour ${user.username}`,
+        data: {
+          count: result.count,
+          quests: result.quests
+        }
+      });
+    } catch (renewError) {
+      console.error(`❌ Erreur lors du renouvellement:`, renewError);
+      return res.status(500).json({
+        success: false,
+        message: `Erreur lors du renouvellement: ${renewError.message}`
+      });
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors du renouvellement des quêtes:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur lors du renouvellement des quêtes',
+      error: error.message
+    });
+  }
+});
+
 console.log('✅ Routes de base configurées');
 
 // Import des routes

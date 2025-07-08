@@ -77,7 +77,11 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
         completed: true
       };
       
-      const success = await onComplete(questData.id, progress);
+      // Utiliser l'ID de la Quest template, pas l'ID de UserQuest
+      const questTemplateId = questData.id;
+      console.log('Completing quest with ID:', questTemplateId);
+      
+      const success = await onComplete(questTemplateId, progress);
       if (!success) {
         console.error('Failed to complete quest');
       }
@@ -119,7 +123,7 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
     return Math.min((current / total) * 100, 100);
   };
 
-  const isCompleted = quest.progress?.completed;
+  const isCompleted = (quest as any).is_completed || quest.progress?.completed;
   const progressPercentage = getProgressPercentage();
 
   if (compact) {
@@ -143,6 +147,13 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
         </div>
         
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 bg-yellow-900/30 border border-yellow-600/30 rounded px-2 py-1">
+            <Trophy className="w-3 h-3 text-yellow-400" />
+            <span className="text-xs text-yellow-400 font-bold">
+              {questData.xp_reward || 0}
+            </span>
+          </div>
+          
           <Badge 
             variant="outline" 
             className="text-xs"
@@ -200,16 +211,26 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
             </Badge>
           </div>
           
-          <Badge 
-            variant="outline" 
-            style={{ 
-              backgroundColor: difficultyStyle.bg, 
-              borderColor: difficultyStyle.border, 
-              color: difficultyStyle.text 
-            }}
-          >
-            {(questData.difficulty || 'easy').toUpperCase()}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge 
+              variant="outline" 
+              className="bg-yellow-900/40 border-yellow-600/50 text-yellow-300 font-bold px-3 py-1"
+            >
+              <Trophy className="w-3 h-3 mr-1" />
+              {questData.xp_reward || 0} XP
+            </Badge>
+            
+            <Badge 
+              variant="outline" 
+              style={{ 
+                backgroundColor: difficultyStyle.bg, 
+                borderColor: difficultyStyle.border, 
+                color: difficultyStyle.text 
+              }}
+            >
+              {(questData.difficulty || 'easy').toUpperCase()}
+            </Badge>
+          </div>
         </div>
 
         {/* Titre et description */}
@@ -220,17 +241,6 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
         <CardDescription className="text-gray-300 mb-4 leading-relaxed">
           {questData.description || 'Aucune description disponible'}
         </CardDescription>
-
-        {/* Objectifs */}
-        <div className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 mb-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <Target className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-medium text-blue-400">Objectif</span>
-          </div>
-          <p className="text-sm text-gray-300">
-            {formatRequirements()}
-          </p>
-        </div>
 
         {/* Barre de progression */}
         {!isCompleted && questData.requirements?.count && (
@@ -253,10 +263,10 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
         {/* Récompenses */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Trophy className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm text-yellow-400 font-medium">
-                {questData.xpReward || 0} XP
+            <div className="flex items-center space-x-1 bg-yellow-900/30 border border-yellow-600/30 rounded-lg px-3 py-2">
+              <Trophy className="w-5 h-5 text-yellow-400" />
+              <span className="text-lg text-yellow-400 font-bold">
+                {questData.xp_reward || 0} XP
               </span>
             </div>
             {questData.coinReward && (
