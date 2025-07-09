@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
-import { ModernAvatarCustomizer } from '../components/ModernAvatarCustomizer';
+import { DiscreetAvatarCustomizer } from '../components/DiscreetAvatarCustomizer';
 import { api } from '../services/api';
 
 function Dashboard() {
@@ -283,7 +283,9 @@ function Dashboard() {
           }}>
             
             {/* Avatar */}
-            <div style={{
+            <div 
+              className="avatar-container"
+              style={{
               width: 'clamp(80px, 15vw, 120px)',
               height: 'clamp(80px, 15vw, 120px)',
               borderRadius: '50%',
@@ -294,9 +296,14 @@ function Dashboard() {
               fontSize: 'clamp(2rem, 4vw, 3rem)',
               boxShadow: '0 0 30px rgba(255, 0, 110, 0.5)',
               border: '4px solid white',
-              flexShrink: 0
+              flexShrink: 0,
+              position: 'relative'
             }}>
               <PixelAvatar avatarData={currentAvatar} size="large" />
+              <DiscreetAvatarCustomizer
+                currentAvatar={currentAvatar}
+                onAvatarChange={handleAvatarChange}
+              />
             </div>
             
             {/* Informations Utilisateur */}
@@ -388,9 +395,9 @@ function Dashboard() {
               }}>
                 🎨 Personnalisation Avatar
               </h3>
-              <ModernAvatarCustomizer
+              <DiscreetAvatarCustomizer
                 currentAvatar={currentAvatar}
-                onAvatarChange={(newAvatar) => {
+                onAvatarChange={(newAvatar: any) => {
                   handleAvatarChange(newAvatar);
                 }}
               />

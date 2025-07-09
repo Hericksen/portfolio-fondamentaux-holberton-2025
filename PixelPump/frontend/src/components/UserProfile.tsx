@@ -5,11 +5,12 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { PixelAvatar } from './PixelAvatar';
-import { ModernAvatarCustomizer } from './ModernAvatarCustomizer';
-import { AchievementsDisplay } from './AchievementsDisplay';
+import { DiscreetAvatarCustomizer } from './DiscreetAvatarCustomizer';
+import { AllAchievementsDisplay } from './AllAchievementsDisplay';
 import { AchievementsPreview } from './AchievementsPreview';
+import { FeaturedAchievements } from './FeaturedAchievements';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
-import { Target, TrendingUp, Trophy } from 'lucide-react';
+import { Target, TrendingUp, Trophy, ChevronRight } from 'lucide-react';
 import api from '../services/api';
 
 interface UserProfile {
@@ -172,10 +173,25 @@ export const UserProfile: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-6">
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 relative avatar-container">
               <PixelAvatar 
                 avatarData={profile.avatar} 
                 size="large"
+              />
+              
+              
+              {/* Customizer discret intégré */}
+              <DiscreetAvatarCustomizer
+                currentAvatar={profile.avatar}
+                onAvatarChange={async (newAvatar: any) => {
+                  try {
+                    await api.put('/api/users/avatar', { avatar: newAvatar });
+                    // Rafraîchir le profil
+                    await fetchProfile();
+                  } catch (error) {
+                    console.error('Erreur lors de la sauvegarde de l\'avatar:', error);
+                  }
+                }}
               />
             </div>
             <div className="flex-1">
@@ -204,7 +220,24 @@ export const UserProfile: React.FC = () => {
                 <Badge variant="outline">
                   ⭐ {profile.total_quests_completed} quêtes
                 </Badge>
+                <Badge 
+                  variant="secondary" 
+                  className="bg-purple-500 hover:bg-purple-600 text-white cursor-pointer" 
+                  onClick={() => setShowFullAchievements(true)}
+                >
+                  🏆 Voir Succès
+                </Badge>
               </div>
+              
+              {/* Mini aperçu des achievements */}
+              {!isEditing && (
+                <>
+                  {console.log('[UserProfile] Render FeaturedAchievements')}
+                  <FeaturedAchievements 
+                    isEditing={isEditing}
+                  />
+                </>
+              )}
             </div>
           </div>
         </CardContent>
@@ -389,13 +422,33 @@ export const UserProfile: React.FC = () => {
 
       {/* Succès & Achievements */}
       {showFullAchievements ? (
-        <AchievementsDisplay className="w-full" />
-      ) : (
-        <AchievementsPreview 
-          className="w-full"
-          maxItems={3}
-          onViewAll={() => setShowFullAchievements(true)}
+        <AllAchievementsDisplay 
+          className="w-full" 
+          onClose={() => setShowFullAchievements(false)}
         />
+      ) : (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
+                Tous vos succès
+              </div>
+              <button
+                onClick={() => setShowFullAchievements(true)}
+                className="text-sm text-purple-600 hover:text-purple-800 flex items-center gap-1"
+              >
+                Voir tous les succès <ChevronRight size={16} />
+              </button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AchievementsPreview 
+              maxItems={5}
+              onViewAll={() => setShowFullAchievements(true)}
+            />
+          </CardContent>
+        </Card>
       )}
       
       {showFullAchievements && (
@@ -407,24 +460,6 @@ export const UserProfile: React.FC = () => {
             Afficher moins
           </button>
         </div>
-      )}
-
-      {/* Personnalisation Avatar */}
-      {isEditing && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Personnalisation Avatar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ModernAvatarCustomizer
-              currentAvatar={editData.avatar}
-              onAvatarChange={(newAvatar: any) => setEditData({
-                ...editData,
-                avatar: newAvatar
-              })}
-            />
-          </CardContent>
-        </Card>
       )}
 
       {/* Bouton de sauvegarde */}

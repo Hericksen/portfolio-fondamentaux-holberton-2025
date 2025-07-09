@@ -91,6 +91,9 @@ class GamificationService {
 
       // Ajouter l'XP à l'utilisateur
       const user = await User.findByPk(userId);
+      console.log(`🎯 [QUEST] Ajout de ${userQuest.Quest.xp_reward} XP pour la quête "${userQuest.Quest.title}"`);
+      console.log(`💫 [QUEST] XP avant: ${user.xp}, Niveau: ${user.level}`);
+      
       const leveledUp = await user.addXp(userQuest.Quest.xp_reward);
       
       // Mettre à jour le streak et stats
@@ -98,8 +101,15 @@ class GamificationService {
       user.total_quests_completed += 1;
       await user.save();
 
+      console.log(`🚀 [QUEST] XP après quête: ${user.xp}, Niveau: ${user.level}, Level Up: ${leveledUp}`);
+
       // Vérifier les achievements
       const newAchievements = await this.checkAchievements(userId);
+
+      // Rafraîchir les données utilisateur après les achievements
+      await user.reload();
+      console.log(`🌟 [FINAL] XP total après achievements: ${user.xp}, Niveau: ${user.level}`);
+      console.log(`🎉 [SUMMARY] Quête: +${userQuest.Quest.xp_reward} XP, Achievements: +${newAchievements.reduce((sum, a) => sum + a.xp_reward, 0)} XP`);
 
       return {
         message: 'Quête complétée!',
@@ -165,6 +175,8 @@ class GamificationService {
             unlocked_at: new Date()
           });
 
+          console.log(`🏆 [ACHIEVEMENT] "${achievement.title}" débloqué! +${achievement.xp_reward} XP`);
+          
           // Ajouter l'XP bonus
           await user.addXp(achievement.xp_reward);
 

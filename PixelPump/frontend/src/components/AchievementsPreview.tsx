@@ -88,12 +88,14 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
   if (loading) {
     return (
       <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
-            Succès Récents
-          </CardTitle>
-        </CardHeader>
+        {className.includes('border-0') ? null : (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
+              Succès Récents
+            </CardTitle>
+          </CardHeader>
+        )}
         <CardContent>
           <div className="flex items-center justify-center py-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
@@ -104,29 +106,31 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
   }
 
   return (
-    <Card className={`${className} hover:shadow-lg transition-shadow`}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
-            <span>Succès Récents</span>
-            <Badge variant="secondary" className="ml-2">
-              {stats.unlocked}/{stats.total}
-            </Badge>
-          </div>
-          {onViewAll && (
-            <button
-              onClick={onViewAll}
-              className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 transition-colors"
-            >
-              Voir tout
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
-        </CardTitle>
-      </CardHeader>
+    <Card className={`${className}`}>
+      {!className.includes('border-0') && (
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
+              <span>Succès Récents</span>
+              <Badge variant="secondary" className="ml-2">
+                {stats.unlocked}/{stats.total}
+              </Badge>
+            </div>
+            {onViewAll && (
+              <button
+                onClick={onViewAll}
+                className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 transition-colors"
+              >
+                Voir tout
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </CardTitle>
+        </CardHeader>
+      )}
       
-      <CardContent>
+      <CardContent className={className.includes('p-0') ? 'p-0' : undefined}>
         {achievements.length === 0 ? (
           <div className="text-center py-4">
             <Trophy className="w-8 h-8 mx-auto text-gray-300 mb-2" />

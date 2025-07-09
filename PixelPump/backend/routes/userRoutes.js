@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserController');
 const authMiddleware = require('../middleware/authMiddleware');
+const featuredAchievementsController = require('../controllers/FeaturedAchievementsController');
 
 // Route publique - création d'utilisateur (inscription)
 router.post('/', userController.create);
@@ -15,6 +16,10 @@ router.put('/profile/me', userController.updateProfile);
 
 // Route pour récupérer les données du dashboard personnel (AVANT les routes avec :id)
 router.get('/dashboard/me', userController.getDashboard);
+
+// Routes pour les achievements mis en avant
+router.get('/profile/featured-achievements', featuredAchievementsController.getFeaturedAchievements);
+router.put('/profile/featured-achievements', featuredAchievementsController.updateFeaturedAchievements);
 
 // Route pour mettre à jour l'avatar de l'utilisateur connecté
 router.put('/avatar', userController.updateMyAvatar);
