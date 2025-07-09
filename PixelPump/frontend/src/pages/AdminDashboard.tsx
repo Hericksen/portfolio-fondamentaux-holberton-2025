@@ -214,9 +214,9 @@ const AdminDashboard: React.FC = () => {
           try {
             switch (bulkAction) {
               case 'addXp':
-                return await api.patch(`/users/${userId}/xp`, { xp: customXpAmount });
+                return await api.patch(`/api/users/${userId}/xp`, { xp: customXpAmount });
               case 'resetProgress':
-                return await api.patch(`/users/${userId}`, { xp: 0, level: 1, streak: 0 });
+                return await api.patch(`/api/users/${userId}`, { xp: 0, level: 1, streak: 0 });
               default:
                 return Promise.resolve();
             }
@@ -261,7 +261,7 @@ const AdminDashboard: React.FC = () => {
   const confirmDeleteUser = async () => {
     try {
       setLoading(true);
-      await api.delete(`/users/${deleteModalData.userId}`);
+      await api.delete(`/api/users/${deleteModalData.userId}`);
       setNotification('✅ Utilisateur supprimé avec succès !');
       fetchUsers();
     } catch (error) {
@@ -398,7 +398,7 @@ const AdminDashboard: React.FC = () => {
 
     try {
       setLoading(true);
-      await api.patch(`/users/${selectedUserForXp.id}/xp`, { xp: xpToAdd });
+      await api.patch(`/api/users/${selectedUserForXp.id}/xp`, { xp: xpToAdd });
       setNotification(`✅ ${xpToAdd} XP ajoutés à ${selectedUserForXp.username}`);
       setShowXpModal(false);
       setSelectedUserForXp(null);

@@ -77,25 +77,16 @@ const QuestCard: React.FC<QuestCardProps> = ({ quest, onComplete, compact = fals
         completed: true
       };
       
-      // Utiliser l'ID de la UserQuest, pas l'ID du template
-      const userQuestId = quest.id;
-      console.log('🎯 QuestCard: Début de complétion pour UserQuest ID:', userQuestId);
-      console.log('🎯 QuestCard: Template ID:', questData.id);
-      console.log('🎯 QuestCard: Titre de la quête:', questData.title);
+      // Utiliser l'ID de la Quest template, pas l'ID de UserQuest
+      const questTemplateId = questData.id;
+      console.log('Completing quest with ID:', questTemplateId);
       
-      const success = await onComplete(userQuestId, progress);
-      
-      if (success) {
-        console.log('✅ QuestCard: Quête complétée avec succès!');
-        // Ne pas faire de scroll automatique ici
-      } else {
-        console.error('❌ QuestCard: Échec de la complétion');
-        // Optionnel: afficher un message d'erreur à l'utilisateur
-        alert('Erreur lors de la complétion de la quête. Veuillez réessayer.');
+      const success = await onComplete(questTemplateId, progress);
+      if (!success) {
+        console.error('Failed to complete quest');
       }
     } catch (error) {
-      console.error('❌ QuestCard: Erreur lors de la complétion:', error);
-      alert('Erreur inattendue lors de la complétion de la quête.');
+      console.error('Error completing quest:', error);
     } finally {
       setIsCompleting(false);
     }

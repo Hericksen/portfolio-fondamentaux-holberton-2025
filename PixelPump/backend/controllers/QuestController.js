@@ -360,50 +360,33 @@ const QuestController = {
     try {
       const LoginQuestService = require('../services/LoginQuestService');
       
-      // Utiliser l'ID de l'utilisateur de la requête si disponible, sinon chercher un utilisateur démo
+      // Utiliser l'ID de l'utilisateur de la requête si disponible, sinon utiliser un ID par défaut
       let userId;
-      let user;
       
       if (req.params.userId) {
         // ID passé en paramètre d'URL
         userId = req.params.userId;
-        user = await User.findByPk(userId, {
-          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
-        });
       } else if (req.user && req.user.userId) {
         // ID de l'utilisateur authentifié
         userId = req.user.userId;
-        user = await User.findByPk(userId, {
-          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
-        });
       } else {
-        // Chercher un utilisateur démo par défaut
-        console.log(`\n🔄 [CONTROLLER] Aucun utilisateur spécifique - Recherche d'un utilisateur démo`);
-        user = await User.findOne({
-          where: {
-            username: 'NewbiePumper' // Nom d'utilisateur démo par défaut
-          },
-          attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
-        });
-        
-        if (!user) {
-          // Si NewbiePumper n'existe pas, chercher n'importe quel utilisateur admin
-          user = await User.findOne({
-            where: {
-              role: 'admin'
-            },
-            attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
-          });
-        }
+        // Utiliser l'ID de démo par défaut (1 = admin démo)
+        userId = 1;
+        console.log(`\n🔄 [CONTROLLER] Aucun utilisateur authentifié - Utilisation de l'ID démo par défaut: ${userId}`);
       }
       
-      console.log(`\n🔄 [CONTROLLER] Demande de renouvellement des quêtes - UserID: ${user?.id}`);
+      console.log(`\n🔄 [CONTROLLER] Demande de renouvellement des quêtes - UserID: ${userId}`);
+      
+      // Récupérer l'utilisateur avec toutes ses informations
+      const user = await User.findByPk(userId, {
+        attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+      });
       
       if (!user) {
-        console.log(`❌ [CONTROLLER] Aucun utilisateur trouvé pour le renouvellement`);
+        console.log(`❌ [CONTROLLER] Utilisateur non trouvé - ID: ${userId}`);
         return res.status(404).json({
           success: false,
-          message: 'Aucun utilisateur démo trouvé'
+          message: 'Utilisateur non trouvé'
         });
       }
       
@@ -464,6 +447,69 @@ const QuestController = {
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération des statistiques',
+        error: error.message
+      });
+    }
+  },
+
+  // Renouveler les quêtes par nom d'utilisateur
+  async renewQuestsByUsername(req, res) {
+    try {
+      const LoginQuestService = require('../services/LoginQuestService');
+      const { User } = require('../models');
+      
+      const username = req.params.username;
+      console.log(`\n🔄 [CONTROLLER] Demande de renouvellement des quêtes - Username: ${username}`);
+      
+      // Récupérer l'utilisateur par nom d'utilisateur
+      const user = await User.findOne({ 
+        where: { username: username },
+        attributes: ['id', 'username', 'email', 'role', 'level', 'xp']
+      });
+      
+      if (!user) {
+        console.log(`❌ [CONTROLLER] Utilisateur non trouvé - Username: ${username}`);
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+      
+      console.log(`✅ [CONTROLLER] Utilisateur trouvé: ${user.username} (ID: ${user.id})`);
+      console.log(`   Email: ${user.email || 'N/A'}`);
+      console.log(`   Role: ${user.role || 'N/A'}`);
+      console.log(`   Niveau: ${user.level || 1}`);
+      console.log(`   XP: ${user.xp || 0}`);
+      
+      // Renouveler les quêtes pour cet utilisateur
+      console.log(`🎮 [CONTROLLER] Renouvellement des quêtes pour ${user.username}...`);
+      
+      try {
+        const result = await LoginQuestService.renewQuestsForDemoUser(user);
+        
+        console.log(`✅ [CONTROLLER] Quêtes renouvelées avec succès - ${result.count} quêtes`);
+        
+        return res.json({
+          success: true,
+          message: `🎮 Quêtes renouvelées pour ${user.username}`,
+          data: {
+            count: result.count,
+            quests: result.quests
+          }
+        });
+      } catch (renewError) {
+        console.error(`❌ [CONTROLLER] Erreur lors du renouvellement:`, renewError);
+        return res.status(500).json({
+          success: false,
+          message: `Erreur lors du renouvellement des quêtes: ${renewError.message}`,
+          error: renewError.message
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors du renouvellement des quêtes par username:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur serveur lors du traitement de la demande',
         error: error.message
       });
     }

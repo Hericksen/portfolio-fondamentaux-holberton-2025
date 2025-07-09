@@ -548,36 +548,6 @@ function Dashboard() {
           </div>
         </section>
         
-        {/* Section Objectifs Fitness */}
-        <section style={{ marginBottom: '30px' }}>
-          <div style={{
-            background: 'rgba(26, 0, 51, 0.6)',
-            border: '2px solid #06ffa5',
-            borderRadius: '20px',
-            padding: 'clamp(20px, 4vw, 30px)',
-            backdropFilter: 'blur(15px)',
-            boxShadow: '0 8px 32px rgba(6, 255, 165, 0.2)',
-            textAlign: 'center',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            <h3 style={{
-              color: '#06ffa5',
-              fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
-              fontWeight: 'bold',
-              marginBottom: '20px',
-              textTransform: 'uppercase'
-            }}>
-              🎯 Objectifs Fitness
-            </h3>
-            <div style={{ color: '#b8b8b8', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)' }}>
-              <p>Quêtes quotidiennes cibles : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.daily_quests || 3}</strong></p>
-              <p>XP hebdomadaire cible : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.weekly_xp || 1000}</strong></p>
-              <p>Niveau objectif : <strong style={{ color: '#06ffa5' }}>{user.fitness_goals?.target_level || 10}</strong></p>
-            </div>
-          </div>
-        </section>
-        
         {/* Section Quêtes Utilisateur */}
         <section style={{ marginBottom: '30px' }}>
           <div style={{

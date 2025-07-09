@@ -63,90 +63,41 @@ export const useAdvancedQuests = (onUserDataChange?: () => Promise<void>): UseAd
   const completeQuest = useCallback(async (questId: string, progress: Record<string, any>): Promise<boolean> => {
     try {
       setError(null);
-      console.log('🎯 Hook: Début de complétion pour questId:', questId, 'avec progress:', progress);
+      console.log('Attempting to complete quest:', questId, 'with progress:', progress);
       
-      // Afficher l'état actuel des quêtes avant complétion
-      console.log('📊 Hook: État avant complétion:', {
-        daily: activeQuests.daily.length,
-        weekly: activeQuests.weekly.length,
-        monthly: activeQuests.monthly.length,
-        special: activeQuests.special.length
-      });
+      // Sauvegarder la position de défilement actuelle
+      const scrollPosition = window.scrollY;
       
       const result = await advancedQuestApi.completeQuest(questId, progress);
-      console.log('🎯 Hook: Résultat de l\'API:', result);
+      console.log('Quest completion result:', result);
       
       if (result.success) {
-        console.log('✅ Hook: Complétion réussie, XP gagné:', result.data?.xpGained);
-        
-        // Si c'est une quête démo, on la retire directement de l'état local
-        if (questId.startsWith('demo-')) {
-          console.log('🎭 Hook: Retrait de la quête démo de l\'état local');
-          
-          setActiveQuests(prevQuests => {
-            const newQuests = { ...prevQuests };
-            
-            // Compter avant retrait
-            const totalBefore = Object.values(newQuests).flat().length;
-            console.log('📊 Hook: Nombre de quêtes avant retrait:', totalBefore);
-            
-            // Retirer la quête de toutes les catégories
-            Object.keys(newQuests).forEach(category => {
-              const categoryKey = category as keyof typeof newQuests;
-              const beforeCount = newQuests[categoryKey].length;
-              
-              newQuests[categoryKey] = newQuests[categoryKey].filter(
-                (quest: any) => quest.id !== questId
-              );
-              
-              const afterCount = newQuests[categoryKey].length;
-              if (beforeCount !== afterCount) {
-                console.log(`✅ Hook: Quête retirée de la catégorie ${category} (${beforeCount} → ${afterCount})`);
-              }
-            });
-            
-            const totalAfter = Object.values(newQuests).flat().length;
-            console.log('📊 Hook: Nombre de quêtes après retrait:', totalAfter);
-            
-            return newQuests;
-          });
-          
-          // Mettre à jour les stats
-          setStats(prevStats => {
-            if (!prevStats) return prevStats;
-            
-            const newTotal = prevStats.total_active - 1;
-            console.log('📊 Hook: Mise à jour des stats:', prevStats.total_active, '→', newTotal);
-            
-            return {
-              ...prevStats,
-              total_active: newTotal >= 0 ? newTotal : 0,
-            };
-          });
-        } else {
-          // Pour les vraies quêtes, rafraîchir depuis le backend
-          console.log('🔄 Hook: Rafraîchissement depuis le backend pour vraie quête');
-          await refreshQuests();
-        }
-        
+        console.log('Quest completed successfully, XP gained:', result.data?.xpGained);
+        // Rafraîchir les quêtes après complétion
+        await refreshQuests();
         // Rafraîchir les données utilisateur si la fonction est fournie
         if (onUserDataChange) {
-          console.log('🔄 Hook: Rafraîchissement des données utilisateur');
           await onUserDataChange();
         }
         
-        console.log('✅ Hook: Quête complétée avec succès, conservation de la position de scroll');
+        // Restaurer la position de défilement
+        setTimeout(() => {
+          window.scrollTo({
+            top: scrollPosition,
+            behavior: 'auto'
+          });
+        }, 100);
+        
         return true;
       }
       
-      console.log('❌ Hook: Échec de la complétion de la quête');
       return false;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la complétion de la quête');
-      console.error('❌ Hook: Erreur complétion quête:', err);
+      console.error('Erreur complétion quête:', err);
       return false;
     }
-  }, [refreshQuests, onUserDataChange, activeQuests]);
+  }, [refreshQuests]);
 
   // Renouveler les quêtes (pour utilisateurs demo/admin)
   const renewQuests = useCallback(async (): Promise<boolean> => {
@@ -154,37 +105,23 @@ export const useAdvancedQuests = (onUserDataChange?: () => Promise<void>): UseAd
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Hook: Début du renouvellement des quêtes...');
-      
       const result = await advancedQuestApi.renewQuests();
       
       if (result.success) {
-        console.log('✅ Hook: Quêtes renouvelées avec succès:', result.data);
-        
-        // Nettoyer le cache existant pour forcer le rafraîchissement
-        localStorage.removeItem('pixelpump_active_quests_cache');
-        
-        // Attendre un peu pour s'assurer que les nouvelles quêtes sont en cache
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Forcer le rafraîchissement des quêtes
-        console.log('🔄 Hook: Rafraîchissement des quêtes après renouvellement...');
+        console.log('Quêtes renouvelées avec succès:', result.data);
+        // Rafraîchir les quêtes après renouvellement
         await refreshQuests();
-        
         // Rafraîchir les données utilisateur si la fonction est fournie
         if (onUserDataChange) {
           await onUserDataChange();
         }
-        
-        console.log('✅ Hook: Renouvellement terminé avec succès');
         return true;
       }
       
-      console.log('⚠️ Hook: Échec du renouvellement');
       return false;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du renouvellement des quêtes');
-      console.error('❌ Hook: Erreur renouvellement quêtes:', err);
+      console.error('Erreur renouvellement quêtes:', err);
       return false;
     } finally {
       setLoading(false);

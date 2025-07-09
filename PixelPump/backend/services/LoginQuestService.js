@@ -55,18 +55,17 @@ class LoginQuestService {
     try {
       console.log(`🔄 [SERVICE] Renouvellement des quêtes pour ${user.username} (ID: ${user.id})...`);
       
-      // 1. Supprimer toutes les quêtes actives actuelles (non complétées)
-      console.log(`   🔍 Recherche des quêtes actives actuelles...`);
+      // 1. Supprimer toutes les quêtes existantes pour éviter les conflits d'index unique
+      console.log(`   🔍 Recherche de toutes les quêtes existantes...`);
       
       try {
         const deletedCount = await UserQuest.destroy({
           where: {
-            user_id: user.id,
-            is_completed: false
+            user_id: user.id
           }
         });
         
-        console.log(`   🗑️ ${deletedCount} quêtes actives supprimées`);
+        console.log(`   🗑️ ${deletedCount} quêtes existantes supprimées (complétées et non complétées)`);
       } catch (deleteError) {
         console.error(`   ❌ Erreur lors de la suppression des quêtes:`, deleteError);
         throw new Error(`Erreur lors de la suppression des quêtes: ${deleteError.message}`);
@@ -165,11 +164,14 @@ class LoginQuestService {
         return { success: false, count: 0, message: 'Aucune quête sélectionnée' };
       }
 
-      // Créer les assignations avec dates d'expiration appropriées
+      // Créer les assignations avec dates d'expiration appropriées et cycle_id unique
+      const { v4: uuidv4 } = require('uuid');
+      const cycleId = uuidv4(); // Générer un cycle_id unique pour ce renouvellement
+      
       const userQuests = selectedQuests.map(quest => ({
         user_id: userId,
         quest_id: quest.id,
-        cycle_id: null,
+        cycle_id: cycleId,
         assigned_at: new Date(),
         expires_at: this.calculateExpirationDate(quest.type),
         progress: {},

@@ -45,10 +45,6 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
       // Liste des emails démo connus
       const demoEmails = ['admin@pixelpump.com', 'demo@pixelpump.com'];
       
-      // Force à true pour tous les utilisateurs (test temporaire)
-      return true;
-      
-      /* Code normal - à réactiver après les tests
       // Vérifier si le nom d'utilisateur est dans la liste des démos
       const usernameIsDemoOrAdmin = demoUsernames.includes(user.username);
       
@@ -61,7 +57,10 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
       
       const isDemoUser = usernameIsDemoOrAdmin || emailIsDemoOrAdmin || roleIsAdmin;
       
-      console.log('🎭 Détection démo:', {
+      console.log('🎭 Détection démo/admin:', {
+        username: user.username,
+        email: user.email,
+        role: user.role,
         usernameIsDemoOrAdmin,
         emailIsDemoOrAdmin,
         roleIsAdmin,
@@ -69,7 +68,6 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
       });
       
       return isDemoUser;
-      */
     } catch (error) {
       console.error('Erreur lors de la vérification du type d\'utilisateur:', error);
       return false;
@@ -77,48 +75,33 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
   };
 
   const handleRefresh = async () => {
-    console.log('🔄 Dashboard: Clic sur le bouton Renouveler');
+    console.log('🔄 Clic sur le bouton Actualiser');
     
     try {
       // Désactiver le bouton pendant la requête
       setRefreshLoading(true);
       
       // Forcer le renouvellement des quêtes
-      console.log('🎮 Dashboard: Tentative de renouvellement des quêtes...');
+      console.log('🎮 Tentative de renouvellement des quêtes via le service indépendant...');
       const success = await renewQuests();
-      console.log('✅ Dashboard: Résultat du renouvellement:', success);
+      console.log('✅ Résultat:', success);
+      
+      // Actualiser l'affichage et montrer un retour
+      setActiveTab('all');
       
       if (success) {
-        // Attendre un peu pour s'assurer que les nouvelles quêtes sont chargées
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Forcer un rafraîchissement supplémentaire pour s'assurer que l'UI est à jour
-        await refreshQuests();
-        
-        // Calculer le nombre de quêtes après renouvellement
-        const totalQuests = Object.values(activeQuests).flat().length;
-        console.log('📊 Dashboard: Nombre total de quêtes après renouvellement:', totalQuests);
-        
-        // Afficher le message de succès
-        alert(`✅ Succès! ${totalQuests > 0 ? `${totalQuests} quêtes assignées` : 'Nouvelles quêtes assignées'}.`);
-        
-        // Remonter en haut de page pour voir les nouvelles quêtes
-        setTimeout(() => {
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
-        }, 200);
-        
-        // S'assurer d'afficher toutes les quêtes
-        setActiveTab('all');
-        
+        alert(`✅ Succès! Nouvelles quêtes assignées.`);
       } else {
         alert('⚠️ Les quêtes n\'ont pas pu être renouvelées.');
       }
       
+      // Attendre un peu pour que l'utilisateur voie le message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Rafraîchir les quêtes à l'écran
+      await refreshQuests();
     } catch (error) {
-      console.error('❌ Dashboard: Erreur lors du renouvellement:', error);
+      console.error('❌ Erreur lors du renouvellement:', error);
       alert('❌ Erreur lors du renouvellement des quêtes. Veuillez réessayer plus tard.');
     } finally {
       setRefreshLoading(false);
@@ -248,21 +231,23 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
           </div>
           
           <div className="flex items-center justify-center w-full">
-            <Button 
-              onClick={handleRefresh} 
-              disabled={refreshLoading || questsLoading}
-              className="cyberpunk-btn pixel-btn font-pixel"
-              size="sm"
-              style={{
-                background: 'transparent',
-                border: `2px solid ${isDemoOrAdminUser() ? '#ff006e' : '#8338ec'}`,
-                color: isDemoOrAdminUser() ? '#ff006e' : '#8338ec',
-                fontSize: '0.75rem'
-              }}
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
-              {refreshLoading ? 'Chargement...' : 'Nouvelles Quêtes'}
-            </Button>
+            {isDemoOrAdminUser() && (
+              <Button 
+                onClick={handleRefresh} 
+                disabled={refreshLoading || questsLoading}
+                className="cyberpunk-btn pixel-btn font-pixel"
+                size="sm"
+                style={{
+                  background: 'transparent',
+                  border: '2px solid #ff006e',
+                  color: '#ff006e',
+                  fontSize: '0.75rem'
+                }}
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${refreshLoading ? 'animate-spin' : ''}`} />
+                {refreshLoading ? 'Chargement...' : 'Nouvelles Quêtes'}
+              </Button>
+            )}
           </div>
           
           <div className="quest-tabs-container justify-center">
