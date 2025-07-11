@@ -2,6 +2,11 @@ const User = require('../models/User');
 const UserService = require('../services/UserService');
 const bcrypt = require('bcrypt');
 
+function isValidEmail(email) {
+  // Regex stricte : doit contenir un @, un nom de domaine valide (lettres, chiffres, tirets), un point, et un TLD de 2 à 10 lettres
+  return /^[^@\s]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+\.[a-zA-Z]{2,10}$/.test(email);
+}
+
 const UserController = {
   async create(req, res) {
     try {
@@ -13,6 +18,14 @@ const UserController = {
           message: 'Tous les champs sont requis' 
         });
       }
+      if (!isValidEmail(email)) {
+        console.log('❌ Email invalide reçu:', email);
+        return res.status(400).json({
+          success: false,
+          message: 'Adresse email invalide (doit contenir un domaine valide, ex: .fr, .com, etc)'
+        });
+      }
+      console.log('✅ Création utilisateur avec:', { username, email });
 
       const hashedPassword = await bcrypt.hash(password, 10);
       

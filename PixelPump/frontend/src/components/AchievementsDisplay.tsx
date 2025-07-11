@@ -209,60 +209,87 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {filteredAchievements.map((userAchievement) => {
-              const achievement = userAchievement.Achievement;
-              const config = rarityConfig[achievement.rarity];
-              const IconComponent = config.icon;
-              
+          <div
+            className="flex gap-6 overflow-x-auto pb-2 justify-center items-center"
+            style={{ width: '100%' }}
+          >
+            {Array.from({ length: Math.ceil(filteredAchievements.length / 3) }).map((_, groupIdx) => {
+              const group = filteredAchievements.slice(groupIdx * 3, groupIdx * 3 + 3);
+              // Accentuer la carte si au moins un succès est rare ou plus
+              const isImportant = group.some(u => ['rare', 'epic', 'legendary'].includes(u.Achievement.rarity));
               return (
                 <div
-                  key={userAchievement.id}
-                  className={`p-4 border rounded-lg transition-all hover:shadow-md bg-[rgba(26,0,51,0.7)] border-[var(--pixel-border-secondary)]`}
+                  key={groupIdx}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    background: 'linear-gradient(135deg, rgba(26, 0, 51, 0.85) 0%, rgba(255, 0, 110, 0.08) 100%)',
+                    border: '2px solid rgb(255, 0, 110)',
+                    borderRadius: '18px',
+                    boxShadow: 'rgba(255, 0, 110, 0.1) 0px 4px 24px',
+                    padding: '18px 18px 12px',
+                    minWidth: '270px',
+                    maxWidth: '95vw',
+                    position: 'relative',
+                    transition: 'box-shadow 0.2s',
+                    marginBottom: '24px',
+                    width: '100%',
+                  }}
+                  className="mx-auto w-full flex-shrink-0"
                 >
-                  <div className="flex items-start gap-3">
-                    {/* Icône & Rareté */}
-                    <div className="flex-shrink-0">
-                      <div 
-                        className="w-12 h-12 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: config.color + '20', border: `2px solid ${config.color}` }}
-                      >
-                        <IconComponent 
-                          className="w-6 h-6" 
-                          style={{ color: config.color }} 
-                        />
-                      </div>
-                    </div>
-                    {/* Contenu */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-[var(--pixel-text-primary)] truncate">
-                          {achievement.title}
-                        </h3>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs`} 
-                          style={{ color: config.color, borderColor: config.color }}
-                        >
-                          {achievement.rarity}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-[var(--pixel-text-muted)] mb-2">
-                        {achievement.description}
-                      </p>
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-4">
-                          <span className="flex items-center gap-1 text-[var(--pixel-text-accent)]">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(userAchievement.unlocked_at)}
-                          </span>
-                          <span className="flex items-center gap-1 text-[var(--pixel-success)]">
-                            <TrendingUp className="w-3 h-3" />
-                            +{achievement.xp_reward} XP
-                          </span>
+                  <div className="flex flex-col md:flex-row gap-6 w-full">
+                    {group.map((userAchievement) => {
+                      const achievement = userAchievement.Achievement;
+                      const config = rarityConfig[achievement.rarity];
+                      const IconComponent = config.icon;
+                      return (
+                        <div key={userAchievement.id} className="flex-1 flex flex-col items-start gap-3 min-w-0 break-words">
+                          <div className="flex items-start gap-3 w-full">
+                            <div className="flex-shrink-0">
+                              <div 
+                                className="w-12 h-12 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: config.color + '20', border: `2px solid ${config.color}` }}
+                              >
+                                <IconComponent 
+                                  className="w-6 h-6" 
+                                  style={{ color: config.color }} 
+                                />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-[var(--pixel-text-primary)] truncate">
+                                  {achievement.title}
+                                </h3>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs`} 
+                                  style={{ color: config.color, borderColor: config.color }}
+                                >
+                                  {achievement.rarity}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-[var(--pixel-text-muted)] mb-2">
+                                {achievement.description}
+                              </p>
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-4">
+                                  <span className="flex items-center gap-1 text-[var(--pixel-text-accent)]">
+                                    <Calendar className="w-3 h-3" />
+                                    {formatDate(userAchievement.unlocked_at)}
+                                  </span>
+                                  <span className="flex items-center gap-1 text-[var(--pixel-success)]">
+                                    <TrendingUp className="w-3 h-3" />
+                                    +{achievement.xp_reward} XP
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               );

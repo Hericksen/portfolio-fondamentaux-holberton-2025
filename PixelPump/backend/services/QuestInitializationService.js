@@ -1,4 +1,13 @@
 const { Quest, User, UserQuest } = require('../models');
+const { Sequelize, Op } = require('sequelize');
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
 class QuestInitializationService {
   
@@ -203,65 +212,61 @@ class QuestInitializationService {
       const questsToAssign = [];
       const existingQuestIds = existingUserQuests.map(uq => uq.quest_id);
 
-      // Quêtes quotidiennes (exactement 4)
+      // Quêtes quotidiennes (exactement 4, sans doublons)
       const dailyQuestsNeeded = 4 - existingUserQuests.filter(uq => uq.Quest?.type === 'daily').length;
-      const dailyQuests = await Quest.findAll({
+      let dailyQuests = await Quest.findAll({
         where: {
           type: 'daily',
           difficulty: userLevel <= 2 ? 'easy' : ['easy', 'medium'],
           is_template: true,
           is_active: true,
-          min_level: { [require('sequelize').Op.lte]: userLevel },
-          id: { [require('sequelize').Op.notIn]: existingQuestIds }
-        },
-        limit: Math.max(0, dailyQuestsNeeded),
-        order: [['id', 'ASC']]
+          min_level: { [Op.lte]: userLevel }
+        }
       });
-
+      console.log('🟦 Candidats daily:', dailyQuests.map(q => `${q.title} (${q.difficulty})`));
+      dailyQuests = shuffleArray(dailyQuests).filter((q, i, arr) => arr.findIndex(qq => qq.id === q.id) === i).slice(0, Math.max(0, dailyQuestsNeeded));
+      console.log('🟩 Daily assignées:', dailyQuests.map(q => `${q.title} (${q.difficulty})`));
       questsToAssign.push(...dailyQuests);
       console.log(`   🗓️ ${dailyQuests.length} quêtes quotidiennes assignées (${dailyQuestsNeeded} manquantes)`);
 
-      // Quêtes hebdomadaires (exactement 2)
+      // Quêtes hebdomadaires (exactement 2, sans doublons)
       const weeklyQuestsCount = existingUserQuests.filter(uq => uq.Quest?.type === 'weekly').length;
       const weeklyQuestsNeeded = 2 - weeklyQuestsCount;
       
       if (weeklyQuestsNeeded > 0) {
-        const weeklyQuests = await Quest.findAll({
+        let weeklyQuests = await Quest.findAll({
           where: {
             type: 'weekly',
             difficulty: userLevel <= 3 ? 'easy' : ['easy', 'medium'],
             is_template: true,
             is_active: true,
-            min_level: { [require('sequelize').Op.lte]: userLevel },
-            id: { [require('sequelize').Op.notIn]: existingQuestIds }
-          },
-          limit: weeklyQuestsNeeded,
-          order: [['id', 'ASC']]
+            min_level: { [Op.lte]: userLevel }
+          }
         });
-
+        console.log('🟦 Candidats weekly:', weeklyQuests.map(q => `${q.title} (${q.difficulty})`));
+        weeklyQuests = shuffleArray(weeklyQuests).filter((q, i, arr) => arr.findIndex(qq => qq.id === q.id) === i).slice(0, weeklyQuestsNeeded);
+        console.log('🟩 Weekly assignées:', weeklyQuests.map(q => `${q.title} (${q.difficulty})`));
         questsToAssign.push(...weeklyQuests);
         console.log(`   📅 ${weeklyQuests.length} quêtes hebdomadaires assignées (${weeklyQuestsNeeded} manquantes)`);
       }
 
-      // Quête mensuelle (exactement 1)
+      // Quête mensuelle (exactement 1, sans doublon)
       const monthlyQuestsCount = existingUserQuests.filter(uq => uq.Quest?.type === 'monthly').length;
       const monthlyQuestsNeeded = 1 - monthlyQuestsCount;
       
       if (monthlyQuestsNeeded > 0) {
-        const monthlyQuests = await Quest.findAll({
+        let monthlyQuests = await Quest.findAll({
           where: {
             type: 'monthly',
             is_template: true,
             is_active: true,
-            min_level: { [require('sequelize').Op.lte]: Math.max(1, userLevel) }, // Même niveau 1 peut avoir une quête mensuelle
-            id: { [require('sequelize').Op.notIn]: existingQuestIds }
-          },
-          limit: monthlyQuestsNeeded,
-          order: [['id', 'ASC']]
+            min_level: { [Op.lte]: Math.max(1, userLevel) }
+          }
         });
-
+        console.log('🟦 Candidats monthly:', monthlyQuests.map(q => `${q.title} (${q.difficulty})`));
+        monthlyQuests = shuffleArray(monthlyQuests).filter((q, i, arr) => arr.findIndex(qq => qq.id === q.id) === i).slice(0, monthlyQuestsNeeded);
+        console.log('🟩 Monthly assignée:', monthlyQuests.map(q => `${q.title} (${q.difficulty})`));
         questsToAssign.push(...monthlyQuests);
-        console.log(`   📆 ${monthlyQuests.length} quêtes mensuelles assignées (${monthlyQuestsNeeded} manquantes)`);
       }
 
       // Créer les assignations seulement si on a de nouvelles quêtes

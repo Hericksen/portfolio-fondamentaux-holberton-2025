@@ -11,6 +11,7 @@ const Register: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const { register } = useAuth();
 
@@ -19,13 +20,26 @@ const Register: React.FC = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); // Nettoie l'erreur à chaque modification
+    setSuccess(''); // Nettoie le succès à chaque modification
+  };
+
+  const isValidEmail = (email: string) => {
+    // Autorise user@domaine.fr, user@domaine.com, user@sub.domaine.fr, etc.
+    return /^[^@\s]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,10}$/.test(email);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
 
+    if (!isValidEmail(formData.email)) {
+      setError('Veuillez entrer une adresse email valide avec un nom de domaine (ex: .fr, .com, etc)');
+      setIsLoading(false);
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas.');
       setIsLoading(false);
@@ -39,7 +53,16 @@ const Register: React.FC = () => {
         password: formData.password
       });
       if (!result.success) {
-        setError(result.message || 'Erreur lors de la création du compte. Veuillez réessayer.');
+        if (result.message && result.message.toLowerCase().includes('email')) {
+          setError('Cette adresse email est déjà utilisée.');
+        } else if (result.message && result.message.toLowerCase().includes('utilisateur')) {
+          setError('Ce nom d’utilisateur est déjà utilisé.');
+        } else {
+          setError(result.message || 'Erreur lors de la création du compte. Veuillez réessayer.');
+        }
+      } else {
+        setSuccess('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+        setFormData({ username: '', email: '', password: '', confirmPassword: '' });
       }
     } catch (err) {
       setError('Une erreur s\'est produite. Veuillez réessayer.');
@@ -107,6 +130,22 @@ const Register: React.FC = () => {
             fontSize: '0.9rem'
           }}>
             {error}
+          </div>
+        )}
+
+        {/* Success Message */}
+        {success && (
+          <div style={{
+            background: 'rgba(0, 255, 110, 0.08)',
+            border: '1px solid #00ff6e',
+            borderRadius: '5px',
+            padding: '10px',
+            marginBottom: '20px',
+            color: '#00ff6e',
+            textAlign: 'center',
+            fontSize: '0.9rem'
+          }}>
+            {success}
           </div>
         )}
 
@@ -188,6 +227,11 @@ const Register: React.FC = () => {
                 e.target.style.boxShadow = 'none';
               }}
             />
+            {!isValidEmail(formData.email) && formData.email.length > 0 && (
+              <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginTop: '6px' }}>
+                Veuillez entrer une adresse email avec un nom de domaine (ex: .fr, .com, etc)
+              </div>
+            )}
           </div>
 
           <div style={{ marginBottom: '20px' }}>

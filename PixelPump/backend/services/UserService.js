@@ -2,6 +2,10 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const QuestInitializationService = require('./QuestInitializationService');
 
+function isValidEmail(email) {
+  return /^[^@\s]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+\.[a-zA-Z]{2,10}$/.test(email);
+}
+
 class UserService {
   // Profil par défaut pour un nouvel utilisateur
   getDefaultUserProfile() {
@@ -41,6 +45,9 @@ class UserService {
   }
 
   async createUser(data) {
+    if (!isValidEmail(data.email)) {
+      throw new Error('Adresse email invalide (doit contenir un domaine valide, ex: .fr, .com, etc)');
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await User.create({
@@ -63,6 +70,9 @@ class UserService {
   }
 
   async createUserWithProfile(userData) {
+    if (!isValidEmail(userData.email)) {
+      throw new Error('Adresse email invalide (doit contenir un domaine valide, ex: .fr, .com, etc)');
+    }
     const { username, email, password } = userData;
     const hashedPassword = await bcrypt.hash(password, 12);
 
