@@ -202,14 +202,16 @@ export const FeaturedAchievements: React.FC<FeaturedAchievementsProps> = ({
 
   return (
     <>
-      <div className={`mt-4 p-3 border rounded-lg bg-gray-50 ${className}`}>
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-medium text-purple-800">Mes Succès Favoris</h3>
+      <div className={`pixel-card ${className} mt-4`}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="pixel-title text-[var(--pixel-text-accent)] text-lg flex items-center">
+            <span className="mr-2 align-middle">🏆</span>Mes Succès Favoris
+          </h3>
           {!isEditing && (
             <Button 
               size="sm" 
               variant="ghost"
-              className="text-xs text-purple-600 p-0 h-auto hover:bg-transparent hover:text-purple-800"
+              className="text-xs text-[var(--pixel-text-accent)] p-0 h-auto hover:bg-transparent hover:text-[var(--pixel-primary)]"
               onClick={() => setShowSelector(true)}
             >
               <Edit2 size={14} className="mr-1" />
@@ -217,34 +219,32 @@ export const FeaturedAchievements: React.FC<FeaturedAchievementsProps> = ({
             </Button>
           )}
         </div>
-        
-        <div className="space-y-2">
+        <div className="space-y-3">
           {featuredAchievements.map((userAchievement) => {
             const achievement = userAchievement.Achievement;
             const config = rarityConfig[achievement.rarity];
             const IconComponent = config.icon;
-            
             return (
               <div 
                 key={userAchievement.id}
-                className="flex items-center gap-2 p-2 bg-white rounded-md border border-gray-100"
+                className="flex items-center gap-3 p-3 rounded-lg border border-[var(--pixel-border-secondary)] bg-[rgba(26,0,51,0.7)] hover:bg-[rgba(255,0,110,0.08)] transition-colors duration-200"
+                style={{ boxShadow: '0 2px 8px rgba(255,0,110,0.10)' }}
               >
                 <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2"
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 shadow"
                   style={{ 
-                    backgroundColor: config.color + '20', 
+                    background: 'linear-gradient(135deg, var(--pixel-primary) 0%, var(--pixel-secondary) 60%, var(--pixel-accent) 100%)',
                     color: config.color,
                     borderColor: config.color 
                   }}
                 >
-                  <IconComponent size={16} />
+                  <IconComponent size={20} />
                 </div>
-                
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-medium text-gray-900 truncate">
+                  <h4 className="font-pixel text-base text-[var(--pixel-text-primary)] truncate drop-shadow">
                     {achievement.title}
                   </h4>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-[var(--pixel-text-muted)] truncate">
                     {achievement.description}
                   </p>
                 </div>
@@ -253,7 +253,6 @@ export const FeaturedAchievements: React.FC<FeaturedAchievementsProps> = ({
           })}
         </div>
       </div>
-      
       {showSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <FeaturedAchievementsSelector onClose={() => setShowSelector(false)} />

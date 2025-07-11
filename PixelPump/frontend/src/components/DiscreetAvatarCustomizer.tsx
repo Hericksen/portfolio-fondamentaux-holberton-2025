@@ -10,8 +10,7 @@ import {
   User, 
   Shirt, 
   Glasses, 
-  Check,
-  ChevronRight
+  Check
 } from 'lucide-react';
 
 interface DiscreetAvatarCustomizerProps {
@@ -103,17 +102,6 @@ export const DiscreetAvatarCustomizer: React.FC<DiscreetAvatarCustomizerProps> =
 
   return (
     <>
-      {/* Bouton discret pour ouvrir le customizer */}
-      <Button
-        onClick={() => setIsOpen(true)}
-        size="sm"
-        variant="ghost"
-        className={`absolute bottom-0 right-0 w-7 h-7 p-0 rounded-full bg-black/40 border border-white/20 avatar-edit-button ${className}`}
-        title="Personnaliser l'avatar"
-      >
-        <Pencil className="w-3 h-3 text-white/90" />
-      </Button>
-
       {/* Modal de personnalisation */}
       {isOpen && (
         <div 
@@ -256,6 +244,17 @@ export const DiscreetAvatarCustomizer: React.FC<DiscreetAvatarCustomizerProps> =
           </Card>
         </div>
       )}
+
+      {/* Bouton discret pour ouvrir le customizer */}
+      <Button
+        onClick={() => setIsOpen(true)}
+        size="sm"
+        variant="ghost"
+        className={`absolute bottom-0 right-0 w-7 h-7 p-0 rounded-full bg-black/40 border border-white/20 avatar-edit-button ${className}`}
+        title="Personnaliser l'avatar"
+      >
+        <Pencil className="w-3 h-3 text-white/90" />
+      </Button>
     </>
   );
 };

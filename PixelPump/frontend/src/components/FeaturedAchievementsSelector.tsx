@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Trophy, Award, Star, Crown, Check, X } from 'lucide-react';
+import { Trophy, Award, Star, Crown, Check } from 'lucide-react';
 import api from '../services/api';
 
 // Types
@@ -20,10 +20,6 @@ interface UserAchievement {
   unlocked_at: string;
   achievement_id: string;
   Achievement: Achievement;
-}
-
-interface UserFeaturedAchievements {
-  featured_achievements: string[];
 }
 
 interface FeaturedAchievementsSelectorProps {

@@ -5,6 +5,7 @@ import { useDashboard } from '../hooks/useDashboard';
 import { PixelAvatar } from '../components/PixelAvatar';
 import { AdvancedQuestsDashboard } from '../components/AdvancedQuestsDashboard';
 import { DiscreetAvatarCustomizer } from '../components/DiscreetAvatarCustomizer';
+import { AchievementsPreview } from '../components/AchievementsPreview';
 import { api } from '../services/api';
 
 function Dashboard() {
@@ -340,38 +341,6 @@ function Dashboard() {
               }}>
                 Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR')}
               </p>
-              
-              {/* Bouton Personnalisation Avatar */}
-              <button 
-                onClick={() => setShowAvatarCustomizer(!showAvatarCustomizer)}
-                style={{
-                  display: 'inline-block',
-                  marginTop: '15px',
-                  padding: '10px 20px',
-                  background: showAvatarCustomizer 
-                    ? 'linear-gradient(135deg, #06ffa5, #8338ec)' 
-                    : 'linear-gradient(135deg, #ff006e, #8338ec)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '25px',
-                  fontWeight: 'bold',
-                  fontSize: 'clamp(0.8rem, 2vw, 1rem)',
-                  textTransform: 'uppercase',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 15px rgba(255, 0, 110, 0.3)',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(255, 0, 110, 0.4)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(255, 0, 110, 0.3)';
-                }}
-              >
-                {showAvatarCustomizer ? '✅ Fermer Customizer' : '🎨 Personnaliser Avatar'}
-              </button>
             </div>
           </div>
           
@@ -550,6 +519,56 @@ function Dashboard() {
                 fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
               }}>
                 ⚔️ Succès
+              </div>
+            </div>
+          </div>
+          
+          {/* Badge Succès + aperçu dynamique harmonisé DA PixelPump */}
+          <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              background: 'linear-gradient(135deg, rgba(26,0,51,0.85) 0%, rgba(255,0,110,0.08) 100%)',
+              border: '2px solid #ff006e',
+              borderRadius: '18px',
+              boxShadow: '0 4px 24px rgba(255,0,110,0.10)',
+              padding: '18px 18px 12px 18px',
+              minWidth: '270px',
+              maxWidth: '95vw',
+              position: 'relative',
+              transition: 'box-shadow 0.2s',
+            }}>
+              <button
+                style={{
+                  background: 'linear-gradient(90deg, #ff006e, #8338ec)',
+                  color: 'white',
+                  border: '2px solid #ffbe0b',
+                  borderRadius: '20px',
+                  padding: '8px 18px',
+                  fontWeight: 'bold',
+                  fontSize: '1.1rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(255,0,110,0.2)',
+                  outline: 'none',
+                  zIndex: 10,
+                  marginBottom: '8px',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 2px 8px #1a0033',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                }}
+                onClick={() => window.location.href = '/profile'}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = 'linear-gradient(90deg, #8338ec, #ff006e)';
+                  e.currentTarget.style.boxShadow = '0 4px 18px #8338ec55';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = 'linear-gradient(90deg, #ff006e, #8338ec)';
+                  e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,0,110,0.2)';
+                }}
+              >
+                🏆 Succès
+              </button>
+              <div style={{ width: '260px', maxWidth: '90vw' }}>
+                <AchievementsPreview maxItems={3} onViewAll={() => window.location.href = '/profile'} />
               </div>
             </div>
           </div>

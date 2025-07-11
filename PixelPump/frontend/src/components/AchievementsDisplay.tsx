@@ -156,7 +156,7 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
   }
 
   return (
-    <Card className={`${className} pixel-card`}>
+    <Card className={`${className} pixel-card w-full max-w-none`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="w-5 h-5" style={{ color: '#ff006e' }} />
@@ -218,7 +218,7 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
               return (
                 <div
                   key={userAchievement.id}
-                  className={`p-4 border rounded-lg transition-all hover:shadow-md ${config.bgColor} ${config.borderColor}`}
+                  className={`p-4 border rounded-lg transition-all hover:shadow-md bg-[rgba(26,0,51,0.7)] border-[var(--pixel-border-secondary)]`}
                 >
                   <div className="flex items-start gap-3">
                     {/* Icône & Rareté */}
@@ -233,32 +233,30 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
                         />
                       </div>
                     </div>
-                    
                     {/* Contenu */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 truncate">
+                        <h3 className="font-semibold text-[var(--pixel-text-primary)] truncate">
                           {achievement.title}
                         </h3>
                         <Badge 
                           variant="outline" 
-                          className={`text-xs ${config.textColor}`}
+                          className={`text-xs`} 
+                          style={{ color: config.color, borderColor: config.color }}
                         >
                           {achievement.rarity}
                         </Badge>
                       </div>
-                      
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-[var(--pixel-text-muted)] mb-2">
                         {achievement.description}
                       </p>
-                      
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-4">
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-[var(--pixel-text-accent)]">
                             <Calendar className="w-3 h-3" />
                             {formatDate(userAchievement.unlocked_at)}
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-[var(--pixel-success)]">
                             <TrendingUp className="w-3 h-3" />
                             +{achievement.xp_reward} XP
                           </span>
@@ -274,13 +272,12 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
 
         {/* Résumé par rareté */}
         {achievements.length > 0 && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-semibold mb-3 text-gray-700">Résumé par rareté</h4>
+          <div className="mt-6 p-4 bg-[rgba(26,0,51,0.7)] rounded-lg">
+            <h4 className="text-sm font-semibold mb-3 text-[var(--pixel-text-accent)]">Résumé par rareté</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(rarityConfig).map(([rarity, config]) => {
                 const count = achievements.filter(ua => ua.Achievement.rarity === rarity).length;
                 const IconComponent = config.icon;
-                
                 return (
                   <div key={rarity} className="text-center">
                     <div className="flex items-center justify-center mb-1">
@@ -288,7 +285,7 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
                         className="w-4 h-4 mr-1" 
                         style={{ color: config.color }} 
                       />
-                      <span className="text-xs font-medium capitalize">
+                      <span className="text-xs font-medium capitalize text-[var(--pixel-text-primary)]">
                         {rarity}
                       </span>
                     </div>

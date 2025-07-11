@@ -106,7 +106,7 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
   }
 
   return (
-    <Card className={`${className}`}>
+    <Card className={`${className} w-full max-w-5xl mx-auto`}>
       {!className.includes('border-0') && (
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -143,59 +143,60 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            {achievements.map((userAchievement) => {
-              const achievement = userAchievement.Achievement;
-              const config = rarityConfig[achievement.rarity];
-              const IconComponent = config.icon;
-              
-              return (
-                <div
-                  key={userAchievement.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: config.color + '20', border: `2px solid ${config.color}` }}
+            <div className="flex flex-row gap-6 w-full">
+              {achievements.map((userAchievement) => {
+                const achievement = userAchievement.Achievement;
+                const config = rarityConfig[achievement.rarity];
+                const IconComponent = config.icon;
+                return (
+                  <div
+                    key={userAchievement.id}
+                    className="flex-1 flex items-center gap-6 p-6 rounded-2xl bg-[rgba(26,0,51,0.92)] border-2 border-[var(--pixel-border-secondary)] hover:bg-[rgba(255,0,110,0.15)] transition-colors shadow-2xl min-h-[110px] w-full max-w-none"
+                    style={{ boxShadow: '0 8px 32px rgba(255,0,110,0.18)' }}
                   >
-                    <IconComponent 
-                      className="w-5 h-5" 
-                      style={{ color: config.color }} 
-                    />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {achievement.title}
-                      </h4>
-                      <Badge 
-                        variant="outline" 
-                        className="text-xs capitalize"
-                        style={{ color: config.color, borderColor: config.color }}
-                      >
-                        {achievement.rarity}
-                      </Badge>
+                    <div 
+                      className="w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg"
+                      style={{ background: 'linear-gradient(135deg, var(--pixel-primary) 0%, var(--pixel-secondary) 60%, var(--pixel-accent) 100%)', borderColor: config.color }}
+                    >
+                      <IconComponent 
+                        className="w-8 h-8" 
+                        style={{ color: config.color }} 
+                      />
                     </div>
-                    <p className="text-sm text-gray-600 truncate">
-                      {achievement.description}
-                    </p>
-                    <div className="text-xs text-gray-500 mt-1">
-                      +{achievement.xp_reward} XP • {new Date(userAchievement.unlocked_at).toLocaleDateString('fr-FR')}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="font-pixel text-xl text-[var(--pixel-text-primary)] truncate drop-shadow-xl">
+                          {achievement.title}
+                        </h4>
+                        <Badge 
+                          variant="outline" 
+                          className="text-sm capitalize px-3 py-1 font-bold tracking-wide"
+                          style={{ color: config.color, borderColor: config.color, background: 'rgba(0,0,0,0.18)' }}
+                        >
+                          {achievement.rarity}
+                        </Badge>
+                      </div>
+                      <p className="text-lg text-[var(--pixel-text-muted)] font-mono mb-1 whitespace-normal break-words">
+                        {achievement.description}
+                      </p>
+                      <div className="text-xs text-[var(--pixel-text-accent)] mt-1 font-bold">
+                        +{achievement.xp_reward} XP • {new Date(userAchievement.unlocked_at).toLocaleDateString('fr-FR')}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
             
             {/* Barre de progression globale */}
-            <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+            <div className="mt-4 p-3 bg-[rgba(26,0,51,0.7)] rounded-lg">
               <div className="flex justify-between items-center text-sm mb-2">
-                <span className="text-purple-700 font-medium">Progression totale</span>
-                <span className="text-purple-600">{stats.progress}%</span>
+                <span className="text-[var(--pixel-text-accent)] font-medium">Progression totale</span>
+                <span className="text-[var(--pixel-text-primary)]">{stats.progress}%</span>
               </div>
-              <div className="w-full bg-purple-200 rounded-full h-2">
+              <div className="w-full bg-[var(--pixel-border-secondary)] rounded-full h-2">
                 <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-[var(--pixel-success)] h-2 rounded-full transition-all duration-500"
                   style={{ width: `${stats.progress}%` }}
                 ></div>
               </div>

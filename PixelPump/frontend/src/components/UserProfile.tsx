@@ -57,6 +57,7 @@ export const UserProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showFullAchievements, setShowFullAchievements] = useState(false);
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
   
   // Hook pour récupérer les statistiques des quêtes
   const { stats: questStats } = useAdvancedQuests();
@@ -178,21 +179,6 @@ export const UserProfile: React.FC = () => {
                 avatarData={profile.avatar} 
                 size="large"
               />
-              
-              
-              {/* Customizer discret intégré */}
-              <DiscreetAvatarCustomizer
-                currentAvatar={profile.avatar}
-                onAvatarChange={async (newAvatar: any) => {
-                  try {
-                    await api.put('/api/users/avatar', { avatar: newAvatar });
-                    // Rafraîchir le profil
-                    await fetchProfile();
-                  } catch (error) {
-                    console.error('Erreur lors de la sauvegarde de l\'avatar:', error);
-                  }
-                }}
-              />
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -220,15 +206,17 @@ export const UserProfile: React.FC = () => {
                 <Badge variant="outline">
                   ⭐ {profile.total_quests_completed} quêtes
                 </Badge>
+                {/* Badge Succès toujours visible */}
                 <Badge 
                   variant="secondary" 
-                  className="bg-purple-500 hover:bg-purple-600 text-white cursor-pointer" 
+                  className="bg-purple-700 hover:bg-purple-800 text-white cursor-pointer px-3 py-1 text-base border-2 border-yellow-400 shadow-lg animate-pulse"
                   onClick={() => setShowFullAchievements(true)}
+                  style={{ zIndex: 10 }}
                 >
-                  🏆 Voir Succès
+                  🏆 Succès
                 </Badge>
+                <span style={{color:'red',fontWeight:'bold',fontSize:'1.2em'}}>[DEBUG: UserProfile MONTÉ]</span>
               </div>
-              
               {/* Mini aperçu des achievements */}
               {!isEditing && (
                 <>
