@@ -53,36 +53,79 @@ class LoginQuestService {
    */
   static async renewQuestsForDemoUser(user) {
     try {
-      console.log(`🔄 [SERVICE] Renouvellement des quêtes pour ${user.username} (ID: ${user.id})...`);
-      
-      // 1. Supprimer toutes les quêtes existantes pour éviter les conflits d'index unique
-      console.log(`   🔍 Recherche de toutes les quêtes existantes...`);
-      
-      try {
-        const deletedCount = await UserQuest.destroy({
-          where: {
-            user_id: user.id
-          }
-        });
-        
-        console.log(`   🗑️ ${deletedCount} quêtes existantes supprimées (complétées et non complétées)`);
-      } catch (deleteError) {
-        console.error(`   ❌ Erreur lors de la suppression des quêtes:`, deleteError);
-        throw new Error(`Erreur lors de la suppression des quêtes: ${deleteError.message}`);
+      console.log(`🔄 [SERVICE] Renouvellement intelligent des quêtes pour ${user.username} (ID: ${user.id})...`);
+      // 1. Récupérer les quêtes actives (non terminées, non expirées, non archivées)
+      const activeUserQuests = await UserQuest.findAll({
+        where: {
+          user_id: user.id,
+          is_completed: false,
+          is_expired: false,
+          is_archived: false
+        },
+        include: [Quest]
+      });
+
+      // 2. Récupérer tous les templates valides pour le niveau de l'utilisateur
+      const allTemplates = await Quest.findAll({
+        where: {
+          is_template: true,
+          is_active: true,
+          min_level: { [Op.lte]: user.level || 1 },
+          [Op.or]: [
+            { max_level: { [Op.gte]: user.level || 1 } },
+            { max_level: null }
+          ]
+        }
+      });
+
+      // 3. Filtrer les templates déjà actives pour l'utilisateur
+      const activeQuestIds = activeUserQuests.map(uq => uq.quest_id || (uq.Quest && uq.Quest.id));
+      const availableTemplates = allTemplates.filter(q => !activeQuestIds.includes(q.id));
+
+      // 4. Grouper par type
+      const byType = type => availableTemplates.filter(q => q.type === type);
+      const needCount = { daily: 4, weekly: 2, monthly: 1 };
+      const resultQuests = [];
+
+      // 5. Pour chaque type, compléter jusqu'à besoin
+      for (const type of ['daily', 'weekly', 'monthly']) {
+        const current = activeUserQuests.filter(uq => uq.Quest && uq.Quest.type === type);
+        const toAdd = needCount[type] - current.length;
+        if (toAdd > 0) {
+          // Sélectionner aléatoirement des templates non actives
+          const pool = byType(type);
+          const shuffled = [...pool].sort(() => 0.5 - Math.random());
+          const selected = shuffled.slice(0, toAdd);
+          resultQuests.push(...selected);
+        }
       }
 
-      // 2. Assigner de nouvelles quêtes aléatoirement
-      console.log(`   🎲 Assignation de nouvelles quêtes...`);
-      
-      try {
-        const result = await this.assignRandomQuests(user.id, user.level);
-        console.log(`   ✅ Résultat de l'assignation:`, result);
-        return result;
-      } catch (assignError) {
-        console.error(`   ❌ Erreur lors de l'assignation des quêtes:`, assignError);
-        throw new Error(`Erreur lors de l'assignation des quêtes: ${assignError.message}`);
+      // 6. Créer les nouvelles assignations (si besoin)
+      if (resultQuests.length > 0) {
+        const { v4: uuidv4 } = require('uuid');
+        const cycleId = uuidv4();
+        const now = new Date();
+        const userQuests = resultQuests.map(quest => ({
+          user_id: user.id,
+          quest_id: quest.id,
+          cycle_id: cycleId,
+          assigned_at: now,
+          expires_at: this.calculateExpirationDate(quest.type),
+          progress: {},
+          is_completed: false,
+          is_expired: false,
+          is_archived: false,
+          streak_bonus: 0,
+          bonus_xp: 0
+        }));
+        await UserQuest.bulkCreate(userQuests);
+        console.log(`   ✅ ${userQuests.length} nouvelles quêtes assignées.`);
+      } else {
+        console.log('   ℹ️ Aucun nouveau template à assigner, missions déjà complètes ou pas de templates disponibles.');
       }
-      
+
+      // 7. Retourner le résultat
+      return { success: true, count: resultQuests.length, quests: resultQuests };
     } catch (error) {
       console.error(`❌ [SERVICE] Erreur lors du renouvellement des quêtes pour ${user.username}:`, error);
       throw error;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useAdvancedQuests } from '../hooks/useAdvancedQuests';
+import { advancedQuestApi } from '../services/api';
 import QuestCard from './QuestCard';
 import { 
   Sword, 
@@ -23,7 +24,6 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
     loading: questsLoading,
     error,
     refreshQuests,
-    renewQuests,
     completeQuest
   } = useAdvancedQuests(onUserDataChange);
 
@@ -78,27 +78,18 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
     console.log('🔄 Clic sur le bouton Actualiser');
     
     try {
-      // Désactiver le bouton pendant la requête
       setRefreshLoading(true);
-      
-      // Forcer le renouvellement des quêtes
       console.log('🎮 Tentative de renouvellement des quêtes via le service indépendant...');
-      const success = await renewQuests();
-      console.log('✅ Résultat:', success);
-      
-      // Actualiser l'affichage et montrer un retour
+      const result = await advancedQuestApi.renewQuests();
       setActiveTab('all');
-      
-      if (success) {
-        alert(`✅ Succès! Nouvelles quêtes assignées.`);
+      if (result?.success && result?.data?.count > 0) {
+        alert(`✅ Succès! ${result.data.count} nouvelles quêtes assignées.`);
+      } else if (result?.success && result?.data?.count === 0) {
+        alert('Aucune nouvelle quête n\'a pu être générée pour votre profil. Vérifiez qu\'il existe des quêtes actives/templates pour votre niveau.');
       } else {
-        alert('⚠️ Les quêtes n\'ont pas pu être renouvelées.');
+        alert('Erreur : les quêtes n\'ont pas pu être renouvelées.');
       }
-      
-      // Attendre un peu pour que l'utilisateur voie le message
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Rafraîchir les quêtes à l'écran
       await refreshQuests();
     } catch (error) {
       console.error('❌ Erreur lors du renouvellement:', error);
@@ -227,7 +218,6 @@ export const AdvancedQuestsDashboard: React.FC<AdvancedQuestsDashboardProps> = (
             fontFamily: 'monospace',
             opacity: 0.8
           }}>
-            📊 Triées par difficulté : Easy → Medium → Hard → Epic
           </div>
           
           <div className="flex items-center justify-center w-full">

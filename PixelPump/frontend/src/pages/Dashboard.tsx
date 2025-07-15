@@ -69,7 +69,7 @@ function Dashboard() {
           borderRadius: '50%',
           animation: 'spin 1s linear infinite'
         }}></div>
-        🔄 Chargement de votre dashboard...
+        Chargement de votre dashboard...
         <style>
           {`
             @keyframes spin {
@@ -97,7 +97,7 @@ function Dashboard() {
         padding: '20px'
       }}>
         <div style={{ color: '#ff6b6b', marginBottom: '20px', fontSize: '3rem' }}>
-          ⚠️
+          Attention
       </div>
         <div style={{ marginBottom: '20px' }}>
           {error}
@@ -116,7 +116,7 @@ function Dashboard() {
             transition: 'all 0.3s ease'
           }}
         >
-          🔄 Réessayer
+          Réessayer
         </button>
       </div>
     );
@@ -180,7 +180,7 @@ function Dashboard() {
             textShadow: '0 0 30px rgba(255, 0, 110, 0.3)',
             minWidth: 'fit-content'
           }}>
-            ⚡ PixelPump
+            PixelPump
           </div>
           
           {/* Navigation */}
@@ -205,7 +205,7 @@ function Dashboard() {
                   textTransform: 'uppercase',
                   whiteSpace: 'nowrap'
                 }}>
-                  👑 Admin
+                  Admin
                 </Link>
               </>
             )}
@@ -237,7 +237,7 @@ function Dashboard() {
                 (e.target as HTMLButtonElement).style.boxShadow = 'none';
               }}
             >
-              🚪 Déconnexion
+              Déconnexion
             </button>
           </nav>
         </div>
@@ -332,7 +332,7 @@ function Dashboard() {
                 marginBottom: '10px',
                 fontWeight: 'bold'
               }}>
-                🎮 Aventurier Fitness Niveau {user.level}
+                Aventurier Fitness Niveau {user.level}
               </p>
               <p style={{ 
                 color: '#b8b8b8', 
@@ -362,7 +362,7 @@ function Dashboard() {
                 marginBottom: '20px',
                 textTransform: 'uppercase'
               }}>
-                🎨 Personnalisation Avatar
+                Personnalisation Avatar
               </h3>
               <DiscreetAvatarCustomizer
                 currentAvatar={currentAvatar}
@@ -454,7 +454,7 @@ function Dashboard() {
                 color: '#06ffa5', 
                 fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
               }}>
-                ⭐ Total Gagné
+                Total Gagné
               </div>
             </div>
             
@@ -485,7 +485,7 @@ function Dashboard() {
                 color: '#8338ec', 
                 fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
               }}>
-                🔥 Série Active
+                Série Active
               </div>
             </div>
             
@@ -518,7 +518,7 @@ function Dashboard() {
                 color: '#ff006e', 
                 fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
               }}>
-                ⚔️ Succès
+                Succès
               </div>
             </div>
           </div>
@@ -565,7 +565,7 @@ function Dashboard() {
                   e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,0,110,0.2)';
                 }}
               >
-                🏆 Succès
+                Succès
               </button>
               <div style={{ width: '100%' }}>
                 <AchievementsPreview maxItems={3} onViewAll={() => window.location.href = '/profile'} />

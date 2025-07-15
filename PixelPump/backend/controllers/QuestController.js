@@ -18,7 +18,13 @@ const QuestController = {
   // Créer une nouvelle quête template (admin)
   async createQuest(req, res) {
     try {
-      const quest = await Quest.create(req.body);
+      // Forcer is_template et is_active à true pour toute création via l'API
+      const questData = {
+        ...req.body,
+        is_template: true,
+        is_active: true
+      };
+      const quest = await Quest.create(questData);
       res.status(201).json({ success: true, data: quest });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });

@@ -29,12 +29,12 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const fitnessGoals = [
-    { id: 'weight-loss', label: '🔥 Perdre du poids', description: 'Brûler les calories avec style' },
-    { id: 'muscle-gain', label: '💪 Prendre du muscle', description: 'Devenir plus fort et sculpté' },
-    { id: 'endurance', label: '🏃 Améliorer l\'endurance', description: 'Courir plus loin, plus longtemps' },
-    { id: 'flexibility', label: '🧘 Gagner en souplesse', description: 'Yoga et étirements zen' },
-    { id: 'general-health', label: '❤️ Santé générale', description: 'Bien-être au quotidien' },
-    { id: 'stress-relief', label: '😌 Réduire le stress', description: 'Sport anti-stress naturel' }
+    { id: 'weight-loss', label: 'Perdre du poids', description: 'Brûler les calories avec style' },
+    { id: 'muscle-gain', label: 'Prendre du muscle', description: 'Devenir plus fort et sculpté' },
+    { id: 'endurance', label: 'Améliorer l\'endurance', description: 'Courir plus loin, plus longtemps' },
+    { id: 'flexibility', label: 'Gagner en souplesse', description: 'Yoga et étirements zen' },
+    { id: 'general-health', label: 'Santé générale', description: 'Bien-être au quotidien' },
+    { id: 'stress-relief', label: 'Réduire le stress', description: 'Sport anti-stress naturel' }
   ];
 
   const skinColors = ['#fdbcb4', '#f1c27d', '#e0ac69', '#c68642', '#8d5524'];
@@ -250,19 +250,19 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete }) => {
               {/* Tutorial Cards */}
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-br from-pink-500/20 to-purple-600/20 rounded-xl p-6 border border-pink-500/30">
-                  <div className="text-4xl mb-4">🎯</div>
+                  <div className="text-4xl mb-4"></div>
                   <h3 className="text-lg font-semibold text-white mb-2">Complète des quêtes</h3>
                   <p className="text-gray-300 text-sm">Fais du sport, gagne de l'XP, level up !</p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 rounded-xl p-6 border border-blue-500/30">
-                  <div className="text-4xl mb-4">🏆</div>
+                  <div className="text-4xl mb-4"></div>
                   <h3 className="text-lg font-semibold text-white mb-2">Débloque des achievements</h3>
                   <p className="text-gray-300 text-sm">Collectionne des trophées uniques</p>
                 </div>
                 
                 <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-xl p-6 border border-green-500/30">
-                  <div className="text-4xl mb-4">🔥</div>
+                  <div className="text-4xl mb-4"></div>
                   <h3 className="text-lg font-semibold text-white mb-2">Maintiens ton streak</h3>
                   <p className="text-gray-300 text-sm">Plus tu joues, plus tu gagnes !</p>
                 </div>
@@ -270,7 +270,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete }) => {
 
               <div className="bg-gradient-to-r from-pink-500/10 to-purple-600/10 rounded-xl p-6 border border-pink-500/20">
                 <h3 className="text-xl font-semibold text-white mb-4">
-                  🎮 Ta première quête t'attend !
+                  Ta première quête t'attend !
                 </h3>
                 <p className="text-gray-300">
                   Prêt à transformer ton fitness en aventure épique ? 
