@@ -327,7 +327,9 @@ async function createAdditionalQuests() {
                    50 + Math.floor(Math.random() * 100),
         duration_minutes: 5 + Math.floor(Math.random() * 55),
         min_level: minLevel,
-        requirements: { custom_action: `action_${i}`, count: 1 + Math.floor(Math.random() * 10) }
+        requirements: { custom_action: `action_${i}`, count: 1 + Math.floor(Math.random() * 10) },
+        is_template: true,
+        is_active: true
       };
       
       additionalQuests.push(randomQuest);

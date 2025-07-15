@@ -66,11 +66,16 @@ const AuthController = {
         token
       });
     } catch (error) {
+      // Log complet pour debug
       console.error('Erreur lors de l\'inscription:', error);
+      if (error && error.errors) {
+        error.errors.forEach(e => console.error('Validation error:', e.message));
+      }
       res.status(500).json({
         success: false,
         message: 'Erreur serveur',
-        error: error.message
+        error: error.message,
+        details: error.errors ? error.errors.map(e => e.message) : undefined
       });
     }
   },

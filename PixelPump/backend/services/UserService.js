@@ -2,10 +2,12 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const QuestInitializationService = require('./QuestInitializationService');
 
+
 function isValidEmail(email) {
   // Relaxed: must contain '@' and at least one '.' after '@'
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
 }
+
 
 class UserService {
   // Profil par défaut pour un nouvel utilisateur
