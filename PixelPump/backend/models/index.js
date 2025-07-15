@@ -52,11 +52,13 @@ UserAchievement.belongsTo(Achievement, { foreignKey: 'achievement_id' });
 QuestCycle.hasMany(UserQuest, { foreignKey: 'cycle_id', onDelete: 'SET NULL' });
 UserQuest.belongsTo(QuestCycle, { foreignKey: 'cycle_id' });
 
+const sequelize = require('../config/db');
 module.exports = {
   User,
   Quest,
   Achievement,
   UserQuest,
   UserAchievement,
-  QuestCycle
+  QuestCycle,
+  sequelize
 };

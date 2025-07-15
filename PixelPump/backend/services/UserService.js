@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 const QuestInitializationService = require('./QuestInitializationService');
 
 function isValidEmail(email) {
-  return /^[^@\s]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+\.[a-zA-Z]{2,10}$/.test(email);
+  // Relaxed: must contain '@' and at least one '.' after '@'
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
 }
 
 class UserService {

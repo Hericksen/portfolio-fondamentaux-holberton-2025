@@ -1,4 +1,5 @@
 const { User, UserQuest, Quest } = require('../models');
+const { User, UserQuest, Quest, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const ExpiredQuestService = require('./ExpiredQuestService');
 const QuestInitializationService = require('./QuestInitializationService');
@@ -164,40 +165,64 @@ class LoginQuestService {
         return { success: false, count: 0, message: 'Aucune quête sélectionnée' };
       }
 
-      // Créer les assignations avec dates d'expiration appropriées et cycle_id unique
+      // Créer le QuestCycle et les UserQuests dans une transaction pour garantir l'ordre
       const { v4: uuidv4 } = require('uuid');
-      const cycleId = uuidv4(); // Générer un cycle_id unique pour ce renouvellement
-      
-      const userQuests = selectedQuests.map(quest => ({
-        user_id: userId,
-        quest_id: quest.id,
-        cycle_id: cycleId,
-        assigned_at: new Date(),
-        expires_at: this.calculateExpirationDate(quest.type),
-        progress: {},
-        is_completed: false,
-        is_expired: false,
-        is_archived: false,
-        streak_bonus: 0,
-        bonus_xp: 0
-      }));
-
-      console.log(`   📝 Création de ${userQuests.length} assignations de quêtes...`);
-      
-      try {
-        await UserQuest.bulkCreate(userQuests);
-        console.log(`   ✅ ${userQuests.length} quêtes assignées avec succès`);
-      } catch (error) {
-        console.error(`   ❌ Erreur lors de la création des assignations:`, error);
-        throw new Error(`Erreur lors de la création des assignations: ${error.message}`);
+      const now = new Date();
+      let type = 'daily';
+      if (selectedQuests.some(q => q.type === 'monthly')) {
+        type = 'monthly';
+      } else if (selectedQuests.some(q => q.type === 'weekly')) {
+        type = 'weekly';
       }
-      
-      console.log(`   📊 Récapitulatif des quêtes assignées:`);
-      selectedQuests.forEach(quest => {
-        console.log(`      - ${quest.title} (${quest.type}, ${quest.category})`);
+
+      let start_date = new Date(now);
+      let end_date = new Date(now);
+      if (type === 'daily') {
+        end_date.setDate(start_date.getDate() + 1);
+      } else if (type === 'weekly') {
+        end_date.setDate(start_date.getDate() + 7);
+      } else if (type === 'monthly') {
+        end_date.setMonth(start_date.getMonth() + 1);
+      }
+
+      let result;
+      await sequelize.transaction(async (t) => {
+        const cycleId = uuidv4();
+        await QuestCycle.create({
+          id: cycleId,
+          type,
+          start_date,
+          end_date,
+          is_active: true,
+          created_at: now
+        }, { transaction: t });
+
+        const userQuests = selectedQuests.map(quest => ({
+          user_id: userId,
+          quest_id: quest.id,
+          cycle_id: cycleId,
+          assigned_at: now,
+          expires_at: this.calculateExpirationDate(quest.type),
+          progress: {},
+          is_completed: false,
+          is_expired: false,
+          is_archived: false,
+          streak_bonus: 0,
+          bonus_xp: 0
+        }));
+
+        console.log(`   📝 Création de ${userQuests.length} assignations de quêtes...`);
+        await UserQuest.bulkCreate(userQuests, { transaction: t });
+        console.log(`   ✅ ${userQuests.length} quêtes assignées avec succès`);
+
+        console.log(`   📊 Récapitulatif des quêtes assignées:`);
+        selectedQuests.forEach(quest => {
+          console.log(`      - ${quest.title} (${quest.type}, ${quest.category})`);
+        });
+
+        result = { success: true, count: selectedQuests.length, quests: selectedQuests };
       });
-      
-      return { success: true, count: selectedQuests.length, quests: selectedQuests };
+      return result;
       
     } catch (error) {
       console.error(`❌ Erreur lors de l'assignation de quêtes aléatoires:`, error);
