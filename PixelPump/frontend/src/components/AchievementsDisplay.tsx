@@ -210,33 +210,25 @@ export const AchievementsDisplay: React.FC<AchievementsDisplayProps> = ({
           </div>
         ) : (
           <div
-            className="flex gap-6 overflow-x-auto pb-2 justify-center items-center"
-            style={{ width: '100%' }}
+            className="flex flex-wrap justify-center gap-6 pb-2 w-full"
           >
             {Array.from({ length: Math.ceil(filteredAchievements.length / 3) }).map((_, groupIdx) => {
               const group = filteredAchievements.slice(groupIdx * 3, groupIdx * 3 + 3);
-              // Accentuer la carte si au moins un succès est rare ou plus
-              const isImportant = group.some(u => ['rare', 'epic', 'legendary'].includes(u.Achievement.rarity));
+              const groupWidth = group.length === 1 ? 'w-full' : group.length === 2 ? 'w-1/2' : 'w-1/3';
               return (
                 <div
                   key={groupIdx}
+                  className={`flex flex-col items-center ${groupWidth} min-w-[220px] max-w-full`}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
                     background: 'linear-gradient(135deg, rgba(26, 0, 51, 0.85) 0%, rgba(255, 0, 110, 0.08) 100%)',
                     border: '2px solid rgb(255, 0, 110)',
                     borderRadius: '18px',
                     boxShadow: 'rgba(255, 0, 110, 0.1) 0px 4px 24px',
                     padding: '18px 18px 12px',
-                    minWidth: '270px',
-                    maxWidth: '95vw',
                     position: 'relative',
                     transition: 'box-shadow 0.2s',
                     marginBottom: '24px',
-                    width: '100%',
                   }}
-                  className="mx-auto w-full flex-shrink-0"
                 >
                   <div className="flex flex-col md:flex-row gap-6 w-full">
                     {group.map((userAchievement) => {

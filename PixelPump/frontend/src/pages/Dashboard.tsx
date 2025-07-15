@@ -567,7 +567,7 @@ function Dashboard() {
               >
                 🏆 Succès
               </button>
-              <div style={{ width: '260px', maxWidth: '90vw' }}>
+              <div style={{ width: '100%' }}>
                 <AchievementsPreview maxItems={3} onViewAll={() => window.location.href = '/profile'} />
               </div>
             </div>

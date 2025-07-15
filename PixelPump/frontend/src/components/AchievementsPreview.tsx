@@ -106,7 +106,7 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
   }
 
   return (
-    <Card className={`${className} w-full max-w-5xl mx-auto`}>
+    <Card className={`${className} w-full`}>
       {!className.includes('border-0') && (
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -143,43 +143,50 @@ export const AchievementsPreview: React.FC<AchievementsPreviewProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex flex-row gap-6 w-full">
+            <div
+              className="flex flex-wrap gap-4 justify-center items-stretch w-full"
+              style={{ minHeight: 120 }}
+            >
               {achievements.map((userAchievement) => {
                 const achievement = userAchievement.Achievement;
                 const config = rarityConfig[achievement.rarity];
                 const IconComponent = config.icon;
+                // Responsive width: 1 achievement = 100%, 2 = 48%, 3+ = 31% (max 3 per row)
+                let width = '100%';
+                if (achievements.length === 2) width = '48%';
+                else if (achievements.length >= 3) width = '31%';
                 return (
                   <div
                     key={userAchievement.id}
-                    className="flex-1 flex items-center gap-6 p-6 rounded-2xl bg-[rgba(26,0,51,0.92)] border-2 border-[var(--pixel-border-secondary)] hover:bg-[rgba(255,0,110,0.15)] transition-colors shadow-2xl min-h-[110px] w-full max-w-none"
-                    style={{ boxShadow: '0 8px 32px rgba(255,0,110,0.18)' }}
+                    className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-[rgba(26,0,51,0.92)] border-2 border-[var(--pixel-border-secondary)] hover:bg-[rgba(255,0,110,0.15)] transition-colors shadow-2xl min-h-[110px]"
+                    style={{ boxShadow: '0 8px 32px rgba(255,0,110,0.18)', width, minWidth: 0, maxWidth: '100%' }}
                   >
-                    <div 
-                      className="w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg"
+                    <div
+                      className="w-14 h-14 rounded-full flex items-center justify-center border-2 shadow-lg mb-2"
                       style={{ background: 'linear-gradient(135deg, var(--pixel-primary) 0%, var(--pixel-secondary) 60%, var(--pixel-accent) 100%)', borderColor: config.color }}
                     >
-                      <IconComponent 
-                        className="w-8 h-8" 
-                        style={{ color: config.color }} 
+                      <IconComponent
+                        className="w-7 h-7"
+                        style={{ color: config.color }}
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-pixel text-xl text-[var(--pixel-text-primary)] truncate drop-shadow-xl">
+                    <div className="flex-1 min-w-0 w-full flex flex-col items-center">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-pixel text-base text-[var(--pixel-text-primary)] truncate drop-shadow-xl max-w-[90px] text-center">
                           {achievement.title}
                         </h4>
-                        <Badge 
-                          variant="outline" 
-                          className="text-sm capitalize px-3 py-1 font-bold tracking-wide"
+                        <Badge
+                          variant="outline"
+                          className="text-xs capitalize px-2 py-0.5 font-bold tracking-wide"
                           style={{ color: config.color, borderColor: config.color, background: 'rgba(0,0,0,0.18)' }}
                         >
                           {achievement.rarity}
                         </Badge>
                       </div>
-                      <p className="text-lg text-[var(--pixel-text-muted)] font-mono mb-1 whitespace-normal break-words">
+                      <p className="text-xs text-[var(--pixel-text-muted)] font-mono mb-1 whitespace-normal break-words text-center">
                         {achievement.description}
                       </p>
-                      <div className="text-xs text-[var(--pixel-text-accent)] mt-1 font-bold">
+                      <div className="text-xs text-[var(--pixel-text-accent)] mt-1 font-bold text-center">
                         +{achievement.xp_reward} XP • {new Date(userAchievement.unlocked_at).toLocaleDateString('fr-FR')}
                       </div>
                     </div>
